@@ -2,9 +2,25 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { chatPri } from "../api/chatPri";
 import "./ChatPanel.css";
 
+// AI 윤리 마무리 질문 세트 (3번째 메뉴)
+const ethicsPrompts = [
+  { 
+    question: "AI 도움을 정직하게 말하는 방법은?",
+    answer: "'프리에게 질문해서 도움을 받았어요' 또는 'AI의 도움을 받아서 더 좋은 작품을 만들었어요'처럼 솔직하게 말하면 돼요! 정직하게 말하는 것이 가장 중요해요! ✅"
+  },
+  { 
+    question: "친구 작품을 공유할 때 지켜야 할 약속은?",
+    answer: "1) 친구에게 먼저 허락을 받기, 2) 출처를 명확히 밝히기 (예: '이 작품은 친구 ○○이가 그렸어요') 이 두 가지를 지키면 돼요! 존중하는 마음이 중요해요! 🤝"
+  },
+  { 
+    question: "AI가 말한 설명을 그대로 쓰면 왜 안 좋을까요?",
+    answer: "AI의 설명을 그대로 쓰면 내 생각이 아닌 기계의 생각이 되어버려요. 예를 들어 '프랙탈은 반복되는 패턴이다'라는 설명을 '내 작품에는 가지가 계속 갈라지는 반복이 있어요'처럼 내 말로 바꿔야 해요! ✍️"
+  },
+];
+
 export default function ChatPanel({ workContext, strokeSummary, onClose }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "안녕! 나는 프랙탈 요정 프리야 ✨\n프랙탈, 반복, 대칭에 대해 뭐든 물어봐! 🧚" },
+    { role: "assistant", content: "안녕! 나는 프랙탈 요정 프리야 ✨\nAI 윤리에 대해 물어보고 싶은 게 있으면 아래 질문 버튼을 클릭해봐! 🧚" },
   ]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,11 +120,49 @@ export default function ChatPanel({ workContext, strokeSummary, onClose }) {
     }
   };
 
+  const handlePromptClick = (promptItem) => {
+    const questionText = promptItem.question;
+    const answerText = promptItem.answer;
+    
+    // 사용자 메시지 추가
+    const userMessage = {
+      role: "user",
+      content: questionText,
+    };
+    setMessages(prev => [...prev, userMessage]);
+    
+    // 봇 답변 추가
+    setTimeout(() => {
+      const botMessage = {
+        role: "assistant",
+        content: answerText,
+      };
+      setMessages(prev => [...prev, botMessage]);
+    }, 500);
+  };
+
   return (
     <div className="chatDrawer">
       <div className="chatHeader">
         <h3>🧚 프리에게 질문하기</h3>
         <button onClick={onClose} className="closeBtn">✕</button>
+      </div>
+
+      {/* AI 윤리 마무리 질문 버튼들 */}
+      <div className="chatPromptsSection">
+        <div className="chatPromptsTitle">🤝 AI 윤리 마무리</div>
+        <div className="chatPromptsContainer">
+          {ethicsPrompts.map((prompt, index) => (
+            <button
+              key={index}
+              type="button"
+              className="chatPromptButton"
+              onClick={() => handlePromptClick(prompt)}
+            >
+              {prompt.question}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="chatMsgs">
