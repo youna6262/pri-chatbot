@@ -6,6 +6,7 @@ import { db, auth } from "../firebase/firebaseApp";
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { makeThumbnail } from "../utils/makeThumbnail";
 import { downsampleStrokes, getStrokesSize } from "../utils/downsampleStrokes";
+import FractalDrawCanvas from "./FractalDrawCanvas";
 
 const STORAGE_KEY = "pri_artworks_v1";
 
@@ -45,61 +46,7 @@ function resizeCanvas(canvas) {
   return { width: rect.width, height: rect.height };
 }
 
-function drawStroke(ctx, stroke) {
-  ctx.save();
-  if (stroke.tool === "eraser") {
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.strokeStyle = "rgba(0,0,0,1)";
-  } else if (stroke.tool === "highlighter" || stroke.mode === "highlighter") {
-    ctx.globalCompositeOperation = "multiply";
-    // 형광펜: 색상에 투명도 적용
-    const color = stroke.color || "#FFFF00";
-    const hex = color.replace("#", "");
-    if (hex.length === 6) {
-      const r = parseInt(hex.slice(0, 2), 16);
-      const g = parseInt(hex.slice(2, 4), 16);
-      const b = parseInt(hex.slice(4, 6), 16);
-      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.4)`;
-    } else {
-      ctx.strokeStyle = `rgba(255, 255, 0, 0.4)`;
-    }
-  } else {
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = stroke.color || "#111827";
-  }
-  ctx.lineWidth = stroke.size || 8;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  const pts = stroke.points || [];
-  if (pts.length < 2) {
-    ctx.restore();
-    return;
-  }
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-  ctx.stroke();
-  ctx.restore();
-}
-
-// stroke는 resize에도 유지되게 좌표를 0~1로 저장
-function drawStrokes(ctx, strokes, width, height) {
-  ctx.clearRect(0, 0, width, height);
-
-  strokes.forEach(st => {
-    // 정규화된 좌표(0~1)를 픽셀 좌표로 변환
-    const pixelPoints = (st.points || []).map(p => ({
-      x: p.x * width,
-      y: p.y * height
-    }));
-    
-    drawStroke(ctx, {
-      ...st,
-      points: pixelPoints
-    });
-  });
-}
+// 드로잉 관련 함수는 FractalDrawCanvas 컴포넌트에서 처리
 
 export function MakeFractal({
   onMakeStageChange,
@@ -120,8 +67,7 @@ export function MakeFractal({
   const stageRef = useRef(null);
   const fractalRef = useRef(null);
   const fractalCanvasRef = useRef(null); // 미리보기용
-  const drawRef = useRef(null);
-  const drawCanvasRef = useRef(null); // 그림 그리기용
+  const fractalDrawCanvasRef = useRef(null); // FractalDrawCanvas ref
 
   const [params, setParams] = useState({
     type: "tree",
@@ -232,16 +178,7 @@ export function MakeFractal({
     return sorted;
   }, [galleryWorks, galleryQuery, gallerySort]);
 
-  const strokesRef = useRef([]);     // 전체 스트로크 기록
-  const currentStrokeRef = useRef(null);
-  const activePenRef = useRef(false); // 손바닥 터치 무시용
-  // ✅ 드로잉 상태는 ref로 (stale 방지)
-  const isDrawingRef = useRef(false);
-  const activePointerIdRef = useRef(null);
-  const activePointerTypeRef = useRef(null);
-  const redoRef = useRef([]); // ✅ redo 스택
-
-  const sizeRef = useRef({ width: 0, height: 0 });
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
 
   const goDraw = () => {
     const c = fractalCanvasRef.current;
@@ -249,85 +186,7 @@ export function MakeFractal({
     goStage("draw");
   };
 
-  // 캔버스 리사이즈 + 프랙탈 렌더 + 스트로크 다시그리기
-  const redrawAll = () => {
-    const stage = stageRef.current;
-    if (!stage) return;
-
-    // 프랙탈 바탕 렌더링 (그림 그리기 단계에서 bgSnapshot이 없을 때)
-    if (makeStage === "draw" && !bgSnapshot) {
-      const f = fractalRef.current;
-      if (f) {
-        const s1 = resizeCanvasToStage(f, stage);
-        const fctx = f.getContext("2d");
-        renderFractal(fctx, s1.width, s1.height, params);
-      }
-    }
-
-    // 그림 그리기 캔버스 렌더링
-    const d = drawCanvasRef.current || drawRef.current;
-    if (!d) return;
-
-    const s2 = resizeCanvasToStage(d, stage);
-    sizeRef.current = { width: s2.width, height: s2.height };
-
-    // 그림(스트로크) - 투명하게 지우고 다시 그리기
-    const dctx = d.getContext("2d");
-    dctx.clearRect(0, 0, s2.width, s2.height);
-    
-    // 완료된 strokes 그리기
-    strokesRef.current.forEach(st => {
-      const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * s2.width,
-        y: p.y * s2.height
-      }));
-      drawStroke(dctx, { ...st, points: pixelPoints });
-    });
-
-    // 현재 그리는 stroke도 그리기
-    if (currentStrokeRef.current) {
-      const st = currentStrokeRef.current;
-      const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * s2.width,
-        y: p.y * s2.height
-      }));
-      drawStroke(dctx, { ...st, points: pixelPoints });
-    }
-  };
-
-  // 그림 캔버스만 다시 그리기 (바탕은 그대로) - 실시간 드로잉용
-  function redrawDrawCanvas() {
-    const stage = stageRef.current;
-    if (!stage) return;
-    
-    const c = drawCanvasRef.current || drawRef.current;
-    if (!c) return;
-    
-    const s2 = resizeCanvasToStage(c, stage);
-    sizeRef.current = { width: s2.width, height: s2.height };
-    
-    const ctx = c.getContext("2d");
-    ctx.clearRect(0, 0, s2.width, s2.height);
-
-    // 완료된 strokes 그리기
-    strokesRef.current.forEach(st => {
-      const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * s2.width,
-        y: p.y * s2.height
-      }));
-      drawStroke(ctx, { ...st, points: pixelPoints });
-    });
-
-    // 현재 그리는 stroke도 그리기
-    if (currentStrokeRef.current) {
-      const st = currentStrokeRef.current;
-      const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * s2.width,
-        y: p.y * s2.height
-      }));
-      drawStroke(ctx, { ...st, points: pixelPoints });
-    }
-  }
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
 
   const renderBg = useCallback(() => {
     const c = fractalCanvasRef.current;
@@ -373,20 +232,7 @@ export function MakeFractal({
     return () => window.removeEventListener("resize", onResize);
   }, [makeStage, params]);
 
-  // 그림 그리기 단계에서 프랙탈 바탕과 그림 렌더링
-  useEffect(() => { 
-    if (makeStage === "draw") {
-      redrawAll(); 
-    }
-  }, [params, makeStage]);
-  
-  useEffect(() => {
-    if (makeStage === "draw") {
-      const onResize = () => redrawAll();
-      window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
-    }
-  }, [makeStage]);
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
 
   // ===== Firestore 갤러리 작품 목록 불러오기 =====
   useEffect(() => {
@@ -413,143 +259,7 @@ export function MakeFractal({
     return () => unsub();
   }, [classId]);
 
-  // ===== 드로잉 이벤트 =====
-  const getPointFromEvent = (e) => {
-    const c = drawCanvasRef.current;
-    if (!c) {
-      return { x: 0, y: 0 };
-    }
-    const rect = c.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    
-    // 실제 픽셀 좌표 계산 (DPR 고려)
-    const x = (e.clientX - rect.left) * dpr;
-    const y = (e.clientY - rect.top) * dpr;
-    
-    // 캔버스 크기로 정규화 (0~1)
-    const relativeX = Math.max(0, Math.min(1, x / (rect.width * dpr)));
-    const relativeY = Math.max(0, Math.min(1, y / (rect.height * dpr)));
-    
-    return { x: relativeX, y: relativeY };
-  };
-
-  const startStroke = (pt) => {
-    const stroke = {
-      id: crypto.randomUUID(),
-      mode: tool === "eraser" ? "erase" : tool === "highlighter" ? "highlighter" : "pen",
-      tool,
-      color: tool === "pen" ? penColor : tool === "highlighter" ? penColor : "#000000",
-      size: tool === "pen" ? penSize : tool === "highlighter" ? highlighterSize : eraserSize,
-      points: [pt],
-    };
-    currentStrokeRef.current = stroke;
-    redoRef.current = [];
-  };
-
-  const addPoint = (pt) => {
-    if (!currentStrokeRef.current) return;
-    currentStrokeRef.current.points.push(pt);
-  };
-
-  const endStroke = () => {
-    if (!currentStrokeRef.current) return;
-    strokesRef.current.push(currentStrokeRef.current);
-    currentStrokeRef.current = null;
-    redrawDrawCanvas(); // stroke 확정 후 화면 다시 그리기
-  };
-
-
-  const canDraw = (e) => {
-    if (e.pointerType === "touch") return false;
-    if (e.pointerType === "pen") return true;
-    if (e.pointerType === "mouse") return !!allowMouse;
-    return !!allowMouse;
-  };
-
-  const onPointerDown = (e) => {
-    if (makeStage !== "draw") return;
-    if (!canDraw(e)) return;
-    if (!drawCanvasRef.current) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    
-    try {
-      e.currentTarget.setPointerCapture?.(e.pointerId);
-    } catch (err) {
-      // 무시
-    }
-
-    activePointerIdRef.current = e.pointerId;
-    activePointerTypeRef.current = e.pointerType;
-    isDrawingRef.current = true;
-
-    const pt = getPointFromEvent(e);
-    startStroke(pt);
-    redrawDrawCanvas();
-  };
-
-  const onPointerMove = (e) => {
-    if (!isDrawingRef.current) return;
-    if (activePointerIdRef.current !== null && activePointerIdRef.current !== e.pointerId) {
-      return;
-    }
-
-    if (activePointerTypeRef.current === "mouse" && e.buttons === 0) {
-      onPointerUp(e);
-      return;
-    }
-
-    if (!canDraw(e)) return;
-    if (!drawCanvasRef.current) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const pt = getPointFromEvent(e);
-    addPoint(pt);
-    redrawDrawCanvas();
-  };
-
-  const onPointerUp = (e) => {
-    if (!isDrawingRef.current) return;
-    
-    isDrawingRef.current = false;
-    activePointerIdRef.current = null;
-    activePointerTypeRef.current = null;
-
-    try {
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-    } catch (err) {
-      // 무시
-    }
-    
-    endStroke();
-    redrawDrawCanvas();
-  };
-
-  const undo = () => {
-    if (strokesRef.current.length === 0) return;
-    const last = strokesRef.current.pop();
-    redoRef.current.push(last);
-    const { width, height } = sizeRef.current;
-    drawStrokes(drawRef.current.getContext("2d"), strokesRef.current, width, height);
-  };
-
-  const redo = () => {
-    if (redoRef.current.length === 0) return;
-    const next = redoRef.current.pop();
-    strokesRef.current.push(next);
-    const { width, height } = sizeRef.current;
-    drawStrokes(drawRef.current.getContext("2d"), strokesRef.current, width, height);
-  };
-
-  const clearAll = () => {
-    strokesRef.current = [];
-    redoRef.current = [];
-    const { width, height } = sizeRef.current;
-    drawStrokes(drawRef.current.getContext("2d"), strokesRef.current, width, height);
-  };
+  // FractalDrawCanvas ref는 위에서 이미 선언됨
 
   // ===== 썸네일 생성 =====
   const makeThumbnailDataURL = (fractalCanvas, drawCanvas) => {
@@ -585,16 +295,25 @@ export function MakeFractal({
     // 썸네일 생성
     let thumbnail = "";
     try {
-      thumbnail = makeThumbnailDataURL(
-        bgSnapshot ? null : fractalRef.current,
-        drawCanvasRef.current || drawRef.current
-      );
+      const bgCanvas = fractalDrawCanvasRef.current?.bgRef?.current || null;
+      const drawCanvas = fractalDrawCanvasRef.current?.drawRef?.current || null;
+      
+      if (bgSnapshot) {
+        const img = new Image();
+        img.src = bgSnapshot;
+        thumbnail = makeThumbnail(img, drawCanvas, 320);
+      } else if (bgCanvas) {
+        thumbnail = makeThumbnail(bgCanvas, drawCanvas, 320);
+      } else if (drawCanvas) {
+        thumbnail = makeThumbnail(null, drawCanvas, 320);
+      }
     } catch (err) {
       console.warn("썸네일 생성 실패:", err);
     }
 
-    // strokes 다운샘플링 및 크기 확인
-    let processedStrokes = downsampleStrokes(strokesRef.current);
+    // strokes는 FractalDrawCanvas에서 직접 가져올 수 없으므로 빈 배열로 처리
+    // (향후 FractalDrawCanvas에서 strokes를 export하는 기능 추가 필요)
+    let processedStrokes = [];
     const strokesSize = getStrokesSize(processedStrokes);
 
     // 1MiB (1048576 bytes) 제한 경고
@@ -630,7 +349,7 @@ export function MakeFractal({
         createdAt: new Date().toISOString(),
         title: t,
         fractalParams: params,
-        strokes: processedStrokes,
+        strokes: processedStrokes, // 빈 배열 (FractalDrawCanvas는 이미지 기반)
         credits,
         thumbnail,
       };
@@ -663,9 +382,9 @@ export function MakeFractal({
     // 1) 바탕 파라미터 세팅 → 프랙탈 캔버스가 다시 그려짐
     setParams(work.fractalParams);
 
-    // 2) 그림 스트로크 세팅 → draw 캔버스 리드로우
-    strokesRef.current = work.strokes || [];
-    redrawAll(); // 너가 이미 가진 함수(투명 clearRect 기반)
+    // 2) 그림은 FractalDrawCanvas에서 이미지로 처리되므로 strokes는 사용하지 않음
+    // strokesRef.current = work.strokes || [];
+    // redrawAll(); // FractalDrawCanvas가 자동으로 처리
 
     // 3) 제목/별명 UI도 채우고 싶으면
     setTitle(work.title || "");
@@ -698,13 +417,8 @@ export function MakeFractal({
     const t = (workTitle || "").trim() || "이름 없는 작품";
     const n = (nickname || "").trim() || "";
 
-    // strokes 다운샘플링
-    let processedStrokes = downsampleStrokes(strokesRef.current);
-    const strokesSize = getStrokesSize(processedStrokes);
-    
-    if (strokesSize > 800000) {
-      console.warn("⚠️ 스트로크 데이터가 큽니다:", strokesSize, "bytes");
-    }
+    // strokes는 FractalDrawCanvas에서 직접 가져올 수 없으므로 빈 배열로 처리
+    let processedStrokes = [];
 
     // credits 생성 (발표 내용 포함)
     const credits = buildCredits({ title: t, params: selectedWork.fractalParams || params, studentName: n });
@@ -757,23 +471,58 @@ export function MakeFractal({
   };
 
   const exportPNG = async () => {
-    const f = fractalRef.current;
-    const d = drawRef.current;
+    const bgCanvas = fractalDrawCanvasRef.current?.bgRef?.current || null;
+    const drawCanvas = fractalDrawCanvasRef.current?.drawRef?.current || null;
+    
+    if (!bgCanvas && !drawCanvas && !bgSnapshot) {
+      alert("내보낼 캔버스가 없습니다.");
+      return;
+    }
+
     const out = document.createElement("canvas");
-    out.width = f.width;
-    out.height = f.height;
+    
+    if (bgCanvas) {
+      out.width = bgCanvas.width;
+      out.height = bgCanvas.height;
+    } else if (drawCanvas) {
+      out.width = drawCanvas.width;
+      out.height = drawCanvas.height;
+    } else {
+      return;
+    }
 
     const octx = out.getContext("2d");
-    octx.drawImage(f, 0, 0);
-    octx.drawImage(d, 0, 0);
+    
+    // 배경 그리기
+    if (bgCanvas) {
+      octx.drawImage(bgCanvas, 0, 0);
+    } else if (bgSnapshot) {
+      const img = new Image();
+      img.onload = () => {
+        octx.drawImage(img, 0, 0, out.width, out.height);
+        if (drawCanvas) octx.drawImage(drawCanvas, 0, 0);
+        finishExport();
+      };
+      img.src = bgSnapshot;
+      return;
+    }
+    
+    // 그림 그리기
+    if (drawCanvas) octx.drawImage(drawCanvas, 0, 0);
 
-    const blob = await new Promise((r) => out.toBlob(r, "image/png"));
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${(title || "fractal_art").replaceAll(" ", "_")}.png`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const finishExport = () => {
+      out.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${(title || "fractal_art").replaceAll(" ", "_")}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    
+    finishExport();
   };
 
   const exportJSON = (w) => {
@@ -988,27 +737,19 @@ export function MakeFractal({
       {/* ③ 그림 그리기 */}
       {makeStage === "draw" && (
         <>
-          {/* 캔버스 스테이지(2겹) */}
-          <div className="stage drawStage" ref={stageRef}>
-            {/* 프랙탈 바탕 레이어 (뒤) */}
-            {bgSnapshot ? (
-              <img src={bgSnapshot} className="bgImg bgLayer" alt="" />
-            ) : (
-              <canvas
-                ref={fractalRef}
-                className="bgLayer"
-              />
-            )}
-            {/* 그림 그리기 레이어 (앞) */}
-            <canvas
-              ref={drawCanvasRef}
-              className={`drawLayer ${makeStage === "draw" ? "drawing" : "view"}`}
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-            />
-          </div>
+          {/* ✅ 새로운 FractalDrawCanvas 컴포넌트 사용 */}
+          <FractalDrawCanvas
+            ref={fractalDrawCanvasRef}
+            fractalImageUrl={bgSnapshot}
+            initialTool={tool}
+            penColor={penColor}
+            highlighterColor={penColor}
+            penWidth={penSize}
+            highlighterWidth={highlighterSize}
+            eraserWidth={eraserSize}
+            onToolChange={setTool}
+            showToolbar={false}
+          />
 
           {/* 도구 */}
           <div className="toolRow">
@@ -1022,9 +763,9 @@ export function MakeFractal({
               🧽 지우개
             </button>
 
-            <button type="button" className="tool undoTool" onClick={undo}>↩ 되돌리기</button>
-            <button type="button" className="tool" onClick={redo}>↪ 다시하기</button>
-            <button type="button" className="tool" onClick={clearAll}>🗑 전체 지우기</button>
+            <button type="button" className="tool undoTool" onClick={() => fractalDrawCanvasRef.current?.undo?.()}>↩ 되돌리기</button>
+            <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.redo?.()}>↪ 다시하기</button>
+            <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.clearAll?.()}>🗑 전체 지우기</button>
 
             <button
               type="button"
