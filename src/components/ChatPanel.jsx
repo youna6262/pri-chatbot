@@ -127,16 +127,16 @@ export default function ChatPanel({ workContext, strokeSummary, onClose }) {
 
       {error && <div className="chatError">{error}</div>}
 
-      <div className="chatInputRow">
+      <div className="chatInputRow" style={{ display: 'none' }}>
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="프리에게 질문하기... ✨"
-          disabled={loading}
+          disabled={true}
         />
-        <button onClick={() => send(text)} disabled={loading || !text.trim()}>
+        <button onClick={() => send(text)} disabled={true}>
           전송
         </button>
       </div>

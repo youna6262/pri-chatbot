@@ -431,21 +431,6 @@ function PriChat({ workContext }) {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="chat-input-container" style={{ display: 'none' }}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="메시지를 입력하세요..."
-            className="chat-input"
-            disabled
-          />
-          <button type="button" onClick={handleSend} className="send-button" disabled>
-            보내기
-          </button>
-        </div>
       </div>
 
       {/* 약속 체크박스 + 마무리 */}
