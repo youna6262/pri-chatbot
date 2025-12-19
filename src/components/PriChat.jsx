@@ -18,6 +18,7 @@ function PriChat({ workContext }) {
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("principle"); // 카테고리 선택 상태
   const [pledges, setPledges] = useState({
     honest: false,   // 정직
     myWords: false,  // 내 말
@@ -379,54 +380,55 @@ function PriChat({ workContext }) {
           <h2 className="chat-title">프랙탈 요정 프리 🧚</h2>
         </div>
 
-        {/* 질문 예시 카테고리 */}
+        {/* 카테고리 선택 UI */}
+        <div className="category-tabs-container">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={selectedCategory === "principle"}
+            className={`category-tab ${selectedCategory === "principle" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("principle")}
+          >
+            <span className="category-icon">🔍</span>
+            <span className="category-text">프랙탈 원리</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={selectedCategory === "title"}
+            className={`category-tab ${selectedCategory === "title" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("title")}
+          >
+            <span className="category-icon">🏷</span>
+            <span className="category-text">제목·발표·공유</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={selectedCategory === "ethics"}
+            className={`category-tab ${selectedCategory === "ethics" ? "active" : ""}`}
+            onClick={() => setSelectedCategory("ethics")}
+          >
+            <span className="category-icon">🤖</span>
+            <span className="category-text">AI 윤리 마무리</span>
+          </button>
+        </div>
+
+        {/* 선택된 카테고리의 질문 예시 */}
         <div className="chat-prompts-section">
-          <div className="prompt-category">
-            <div className="category-title">🔍 프랙탈 원리</div>
-            <div className="prompt-chips">
-              {promptSets.principle.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-chip"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="prompt-category">
-            <div className="category-title">🏷 제목·발표·공유</div>
-            <div className="prompt-chips">
-              {promptSets.title.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-chip"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="prompt-category">
-            <div className="category-title">🤝 AI 윤리 마무리</div>
-            <div className="prompt-chips">
-              {promptSets.ethics.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-chip"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
+          <div className="prompt-chips">
+            {promptSets[selectedCategory].map((prompt, index) => (
+              <button
+                key={index}
+                type="button"
+                className="prompt-chip"
+                onClick={() => handlePromptClick(prompt)}
+              >
+                {prompt.question}
+              </button>
+            ))}
           </div>
         </div>
 
