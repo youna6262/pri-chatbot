@@ -54,9 +54,15 @@ function drawStroke(ctx, stroke) {
     ctx.globalCompositeOperation = "multiply";
     // 형광펜: 색상에 투명도 적용
     const color = stroke.color || "#FFFF00";
-    ctx.strokeStyle = color.replace("#", "").match(/.{1,2}/g)
-      ? `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.4)`
-      : `rgba(255, 255, 0, 0.4)`;
+    const hex = color.replace("#", "");
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.4)`;
+    } else {
+      ctx.strokeStyle = `rgba(255, 255, 0, 0.4)`;
+    }
   } else {
     ctx.globalCompositeOperation = "source-over";
     ctx.strokeStyle = stroke.color || "#111827";
