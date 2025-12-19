@@ -43,7 +43,6 @@ function App() {
           >
             <span className="step-icon">🔍</span>
             <span className="step-label">프랙탈이 뭐야?</span>
-            <span className="step-badge">1</span>
           </button>
 
           <button
@@ -53,7 +52,6 @@ function App() {
           >
             <span className="step-icon">🌿</span>
             <span className="step-label">자연 속 프랙탈</span>
-            <span className="step-badge">2</span>
           </button>
 
           <button
@@ -63,7 +61,6 @@ function App() {
           >
             <span className="step-icon">✨</span>
             <span className="step-label">프랙탈 직접 만들기</span>
-            <span className="step-badge">3</span>
           </button>
 
           <button
@@ -73,7 +70,6 @@ function App() {
           >
             <span className="step-icon">🧚</span>
             <span className="step-label">프리에게 질문하기</span>
-            <span className="step-badge">4</span>
           </button>
 
           <button
@@ -83,7 +79,6 @@ function App() {
           >
             <span className="step-icon">🎯</span>
             <span className="step-label">퀴즈로 마무리</span>
-            <span className="step-badge">5</span>
           </button>
         </div>
 
