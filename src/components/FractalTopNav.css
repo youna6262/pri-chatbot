@@ -1,114 +1,167 @@
-/* 전체 톤: 파스텔 + 스티커 + 말풍선 느낌 */
-.fractal-nav {
+/* ===== Fairybook Top Nav ===== */
+
+.fractal-nav.fairybook {
   width: 100%;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, rgba(255, 230, 243, 0.9), rgba(255, 255, 255, 0));
+  padding: 10px 12px 12px;
+  background: linear-gradient(180deg, rgba(255, 230, 243, 0.92), rgba(255, 255, 255, 0));
 }
 
-/* 가로 스크롤 가능한 레일 */
+/* 레일: 아주 연한 구름/별 패턴 */
 .fractal-nav__rail {
+  position: relative;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 8px 6px 10px;
+  padding: 10px 10px 12px;
+  border-radius: 18px;
+
+  /* "연한 패턴"을 CSS 그라데이션으로 구현 (이미지 필요 없음) */
+  background:
+    radial-gradient(circle at 12% 35%, rgba(255, 255, 255, 0.75) 0 16px, rgba(255, 255, 255, 0) 18px),
+    radial-gradient(circle at 26% 60%, rgba(255, 255, 255, 0.55) 0 14px, rgba(255, 255, 255, 0) 16px),
+    radial-gradient(circle at 42% 38%, rgba(255, 255, 255, 0.65) 0 18px, rgba(255, 255, 255, 0) 20px),
+    radial-gradient(circle at 60% 58%, rgba(255, 255, 255, 0.55) 0 14px, rgba(255, 255, 255, 0) 16px),
+    radial-gradient(circle at 78% 40%, rgba(255, 255, 255, 0.68) 0 16px, rgba(255, 255, 255, 0) 18px),
+    radial-gradient(circle at 90% 62%, rgba(255, 255, 255, 0.52) 0 14px, rgba(255, 255, 255, 0) 16px),
+    radial-gradient(circle at 18% 78%, rgba(255, 213, 235, 0.35) 0 2px, rgba(255, 213, 235, 0) 4px),
+    radial-gradient(circle at 55% 22%, rgba(255, 213, 235, 0.35) 0 2px, rgba(255, 213, 235, 0) 4px),
+    radial-gradient(circle at 82% 25%, rgba(255, 213, 235, 0.35) 0 2px, rgba(255, 213, 235, 0) 4px),
+    linear-gradient(180deg, rgba(255, 246, 251, 0.95), rgba(255, 234, 243, 0.65));
+
+  border: 1.5px solid rgba(255, 182, 213, 0.45);
+  box-shadow: 0 10px 24px rgba(255, 156, 203, 0.14);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
 
-/* 스크롤바 살짝만(브라우저별) */
 .fractal-nav__rail::-webkit-scrollbar {
   height: 8px;
 }
 .fractal-nav__rail::-webkit-scrollbar-thumb {
-  background: rgba(255, 156, 203, 0.35);
+  background: rgba(255, 156, 203, 0.28);
   border-radius: 999px;
 }
 .fractal-nav__rail::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.0);
+  background: rgba(255, 255, 255, 0);
 }
 
-/* 스티커 캡슐 버튼 */
+/* 말풍선 스티커 캡슐 탭 */
 .fractal-nav__pill {
+  position: relative;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 52px;                 /* 터치 영역 확보 */
-  padding: 0 16px 0 12px;
+
+  height: 54px;            /* 터치 영역 */
+  padding: 0 18px 0 14px;
   border-radius: 999px;
-  border: 2px solid rgba(255, 182, 213, 0.85);
-  background: rgba(255, 234, 243, 0.95);
-  color: #a10055;               /* 대비 있는 진한 핑크 */
-  font-weight: 800;
+
+  border: 2px solid rgba(255, 182, 213, 0.9);
+  background: rgba(255, 255, 255, 0.7);
+  color: #a10055;
+
+  font-weight: 900;
   font-size: 15px;
   letter-spacing: -0.2px;
-  box-shadow: 0 6px 14px rgba(255, 156, 203, 0.18);
+
+  box-shadow: 0 8px 16px rgba(255, 156, 203, 0.16);
   cursor: pointer;
   user-select: none;
-  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
 }
 
 .fractal-nav__pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(255, 156, 203, 0.24);
+  box-shadow: 0 12px 22px rgba(255, 156, 203, 0.22);
 }
 
 .fractal-nav__pill:active {
   transform: translateY(0px) scale(0.99);
 }
 
-/* 키보드 접근성 */
+/* 키보드 포커스 */
 .fractal-nav__pill:focus-visible {
-  outline: 3px solid rgba(140, 90, 255, 0.35);
+  outline: 3px solid rgba(140, 90, 255, 0.34);
   outline-offset: 3px;
 }
 
-/* 번호 배지: 너무 시험같지 않게 '스티커 점' 느낌 */
-.fractal-nav__badge {
-  width: 24px;
-  height: 24px;
+/* 별 스티커(숫자 배지 대체) */
+.fractal-nav__sticker {
+  width: 26px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 900;
+
   color: rgba(161, 0, 85, 0.85);
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 234, 243, 0.95);
   border: 1.5px solid rgba(255, 182, 213, 0.9);
+  box-shadow: 0 6px 12px rgba(255, 156, 203, 0.16);
 }
 
-/* 아이콘 크게 */
+/* 이모지 크게 */
 .fractal-nav__icon {
   font-size: 22px;
   line-height: 1;
 }
 
-/* 라벨 */
+/* 라벨 줄바꿈 방지 */
 .fractal-nav__label {
   white-space: nowrap;
 }
 
-/* 활성 탭: 파스텔 그라데이션 + 흰 글씨 + 더 떠보이게 */
+/* ===== 활성 탭: 파스텔 그라데이션 + 반짝 미세 애니메이션 ===== */
 .fractal-nav__pill.is-active {
-  border-color: rgba(255, 156, 203, 0.0);
-  background: linear-gradient(135deg, #ff86c2, #ffc1e3);
+  border-color: rgba(255, 255, 255, 0.0);
+  background: linear-gradient(135deg, #ff78bf, #ffc6e6);
   color: #ffffff;
-  box-shadow: 0 12px 22px rgba(255, 134, 194, 0.38);
+  box-shadow: 0 14px 26px rgba(255, 120, 191, 0.36);
 }
 
-.fractal-nav__pill.is-active .fractal-nav__badge {
+.fractal-nav__pill.is-active .fractal-nav__sticker {
   background: rgba(255, 255, 255, 0.24);
   border-color: rgba(255, 255, 255, 0.35);
   color: #ffffff;
 }
 
-/* 작은 화면에서 글자 조금 줄이기 */
+/* 반짝이 레이어(활성 탭에만 렌더) */
+.fractal-nav__sparkles {
+  pointer-events: none;
+  position: absolute;
+  inset: -6px; /* 탭 주변으로 살짝 넓게 */
+  border-radius: 999px;
+
+  /* 작은 별빛/반짝 점들 */
+  background:
+    radial-gradient(circle at 18% 35%, rgba(255,255,255,0.85) 0 1.5px, rgba(255,255,255,0) 3px),
+    radial-gradient(circle at 38% 22%, rgba(255,255,255,0.65) 0 1.2px, rgba(255,255,255,0) 3px),
+    radial-gradient(circle at 62% 30%, rgba(255,255,255,0.8) 0 1.4px, rgba(255,255,255,0) 3px),
+    radial-gradient(circle at 78% 55%, rgba(255,255,255,0.7) 0 1.2px, rgba(255,255,255,0) 3px),
+    radial-gradient(circle at 48% 68%, rgba(255,255,255,0.75) 0 1.3px, rgba(255,255,255,0) 3px);
+
+  opacity: 0.55;
+  filter: blur(0.2px);
+  animation: fairySparkle 1.8s ease-in-out infinite;
+}
+
+/* 너무 과하지 않게 '살짝' 깜빡이는 반짝 */
+@keyframes fairySparkle {
+  0%   { opacity: 0.35; transform: translateY(0px); }
+  50%  { opacity: 0.70; transform: translateY(-0.5px); }
+  100% { opacity: 0.35; transform: translateY(0px); }
+}
+
+/* 작은 화면에서 살짝 컴팩트 */
 @media (max-width: 420px) {
   .fractal-nav__pill {
     height: 50px;
-    padding: 0 14px 0 10px;
+    padding: 0 16px 0 12px;
     font-size: 14px;
   }
   .fractal-nav__icon {
