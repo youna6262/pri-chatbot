@@ -1,0 +1,158 @@
+/* TeacherDashboard.css */
+.teacherDashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.teacherDashboard h2 {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.teacherDashboard h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 30px 0 16px;
+  color: #555;
+}
+
+.dashboard-loading,
+.dashboard-error {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+}
+
+.dashboard-error {
+  color: crimson;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.statLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.statValue {
+  font-size: 36px;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.statDist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.distItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.distKey {
+  font-weight: 600;
+  color: #555;
+}
+
+.distVal {
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.worksList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workCard {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s;
+}
+
+.workCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.workThumb {
+  width: 120px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+
+.workInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.workTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+}
+
+.workMeta {
+  font-size: 13px;
+  color: #888;
+}
+
+.emptyHint {
+  padding: 40px;
+  text-align: center;
+  background: rgba(79, 70, 229, 0.08);
+  border-radius: 16px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .workCard {
+    flex-direction: column;
+  }
+
+  .workThumb {
+    width: 100%;
+    height: 160px;
+  }
+}
+
+
+
+
+
+

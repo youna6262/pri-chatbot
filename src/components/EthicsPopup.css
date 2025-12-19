@@ -1,0 +1,318 @@
+/* EthicsPopup.css - 귀여운 팝업 디자인! 🎨 */
+.ethics-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ethics-popup {
+  background: linear-gradient(180deg, #fff 0%, #fff5f5 100%);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(255, 182, 193, 0.4), 0 0 0 1px rgba(255, 182, 193, 0.2);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.ethics-popup-header {
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.2);
+}
+
+.ethics-popup-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ethics-icon {
+  font-size: 28px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.ethics-popup-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.ethics-popup-close:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1) rotate(90deg);
+}
+
+.ethics-popup-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ethics-popup-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ethics-popup-content::-webkit-scrollbar-track {
+  background: rgba(255, 182, 193, 0.1);
+  border-radius: 10px;
+}
+
+.ethics-popup-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff9a9e 0%, #fecfef 100%);
+  border-radius: 10px;
+}
+
+.ethics-section {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 182, 193, 0.2);
+  box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
+}
+
+.ethics-intro {
+  background: linear-gradient(135deg, rgba(255, 154, 158, 0.1) 0%, rgba(254, 207, 239, 0.1) 100%);
+  padding: 24px;
+  border-radius: 20px;
+  border: 2px dashed rgba(255, 182, 193, 0.4);
+  margin-bottom: 28px;
+}
+
+.ethics-intro-text {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #333;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.ethics-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ethics-emoji {
+  font-size: 24px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.ethics-section p {
+  margin: 0 0 12px 0;
+  line-height: 1.7;
+  color: #555;
+  font-size: 15px;
+}
+
+.ethics-section strong {
+  color: #ff9a9e;
+  font-weight: 700;
+}
+
+.ethics-section ul {
+  margin: 12px 0 0 0;
+  padding-left: 24px;
+  list-style: none;
+}
+
+.ethics-section ul li {
+  margin: 8px 0;
+  line-height: 1.6;
+  color: #666;
+  font-size: 14px;
+  position: relative;
+  padding-left: 24px;
+}
+
+.ethics-section ul li::before {
+  content: "✨";
+  position: absolute;
+  left: 0;
+  font-size: 16px;
+}
+
+.ethics-tip {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+  padding: 16px;
+  border-radius: 12px;
+  border-left: 4px solid #ff9a9e;
+  margin: 16px 0;
+}
+
+.ethics-tip strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #d63384;
+  font-size: 15px;
+}
+
+.ethics-tip p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+}
+
+.ethics-pledge {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+  border: 2px solid rgba(255, 154, 158, 0.3);
+}
+
+.ethics-pledge-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 182, 193, 0.3);
+}
+
+.ethics-pledge-box p {
+  margin: 0;
+  line-height: 2;
+  color: #555;
+  font-size: 15px;
+}
+
+.ethics-pledge-box strong {
+  color: #ff9a9e;
+  font-weight: 700;
+}
+
+.ethics-popup-footer {
+  padding: 20px 28px;
+  border-top: 2px solid rgba(255, 182, 193, 0.2);
+  background: linear-gradient(180deg, #fff 0%, #fff5f5 100%);
+  display: flex;
+  justify-content: center;
+}
+
+.ethics-popup-ok {
+  padding: 14px 32px;
+  border-radius: 24px;
+  border: none;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(255, 154, 158, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ethics-popup-ok:hover {
+  background: linear-gradient(135deg, #ff8a8e 0%, #febfef 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+}
+
+.ethics-popup-ok:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .ethics-popup {
+    max-height: 95vh;
+    border-radius: 20px;
+  }
+
+  .ethics-popup-header {
+    padding: 20px;
+  }
+
+  .ethics-popup-header h2 {
+    font-size: 20px;
+  }
+
+  .ethics-popup-content {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .ethics-section {
+    padding: 16px;
+  }
+
+  .ethics-section h3 {
+    font-size: 18px;
+  }
+}
+
