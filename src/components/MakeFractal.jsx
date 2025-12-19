@@ -88,7 +88,7 @@ function drawStrokes(ctx, strokes, width, height) {
   });
 }
 
-export default function MakeFractal({
+export function MakeFractal({
   onMakeStageChange,
   onWorkContextChange,
   onNavigateToChat,
