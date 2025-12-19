@@ -1478,6 +1478,20 @@
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* 배경(프랙탈) 레이어는 클릭/드래그를 받지 않게 */
+.drawStage .bgLayer {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 드로잉 레이어만 이벤트 받기 */
+.drawStage .drawLayer {
+  z-index: 2;
+  pointer-events: auto;
+  touch-action: none; /* 모바일에서 스크롤/줌 방지 */
+  cursor: crosshair;
   max-width: 100% !important;
   max-height: 100% !important;
 }

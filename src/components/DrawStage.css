@@ -1,0 +1,31 @@
+/* DrawStage - 2개 레이어 캔버스 구조 */
+
+.draw-wrap {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 220px); /* 상단바/스텝바 높이에 맞춰 조정 */
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+/* 두 캔버스는 완전히 같은 위치/크기로 겹친다 */
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* 배경(프랙탈)은 클릭/드래그를 받지 않게 */
+.layer-bg {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 드로잉 캔버스만 이벤트 받기 */
+.layer-draw {
+  z-index: 2;
+  pointer-events: auto;
+  touch-action: none; /* 모바일에서 스크롤/줌 방지 */
+  cursor: crosshair;
+}
+
