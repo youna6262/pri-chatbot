@@ -197,6 +197,9 @@ function PriChat({ workContext }) {
   };
 
   const handleSend = async () => {
+    // 자유 입력 기능 완전 비활성화 - 정해진 질문 버튼만 사용 가능
+    console.log("자유 입력은 비활성화되어 있습니다. 정해진 질문 버튼을 사용해주세요.");
+    return;
     const userInput = inputValue.trim();
     if (userInput === "" || loading) return;
 

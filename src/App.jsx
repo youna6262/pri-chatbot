@@ -43,7 +43,8 @@ function App() {
             className={`tab-button ${activeTab === "intro" ? "active" : ""}`}
             onClick={() => setActiveTab("intro")}
           >
-            프랙탈이 뭐야?
+            <span className="tab-icon">🔍</span>
+            <span className="tab-text">프랙탈이 뭐야?</span>
           </button>
 
           <button
@@ -51,7 +52,8 @@ function App() {
             className={`tab-button ${activeTab === "nature" ? "active" : ""}`}
             onClick={() => setActiveTab("nature")}
           >
-            자연 속 프랙탈
+            <span className="tab-icon">🌿</span>
+            <span className="tab-text">자연 속 프랙탈</span>
           </button>
 
             <button
@@ -59,7 +61,8 @@ function App() {
               className={`tab-button ${activeTab === "make" ? "active" : ""}`}
               onClick={() => setActiveTab("make")}
             >
-              프랙탈 직접 만들기
+              <span className="tab-icon">✨</span>
+              <span className="tab-text">프랙탈 직접 만들기</span>
             </button>
 
             <button
@@ -67,7 +70,8 @@ function App() {
               className={`tab-button ${activeTab === "chat" ? "active" : ""}`}
               onClick={() => setActiveTab("chat")}
             >
-              프리에게 질문하기
+              <span className="tab-icon">🧚</span>
+              <span className="tab-text">프리에게 질문하기</span>
             </button>
 
             <button
@@ -75,7 +79,8 @@ function App() {
               className={`tab-button ${activeTab === "quiz" ? "active" : ""}`}
               onClick={() => setActiveTab("quiz")}
             >
-              퀴즈로 마무리
+              <span className="tab-icon">🎯</span>
+              <span className="tab-text">퀴즈로 마무리</span>
             </button>
         </div>
 
