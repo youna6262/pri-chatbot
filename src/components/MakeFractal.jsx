@@ -92,9 +92,11 @@ export function MakeFractal({
   onMakeStageChange,
   onWorkContextChange,
   onNavigateToChat,
+  initialStage = "bg",
+  hideStepper = false,
 }) {
   // stage 상태 (bg | draw | card)
-  const [makeStage, setMakeStage] = useState("bg");
+  const [makeStage, setMakeStage] = useState(initialStage);
 
   // ✅ 내부 state도 바꾸고, (있으면) 부모 콜백도 같이 호출
   const goStage = (stage) => {
@@ -820,20 +822,22 @@ export function MakeFractal({
         </div>
       </div>
 
-      {/* 단계 간 이동 스테퍼 */}
-      <div className="makeStepper">
-        <button type="button" className={makeStage === "bg" ? "stage on" : "stage"} onClick={() => goStage("bg")}>
-          ① 바탕 만들기
-        </button>
+      {/* 단계 간 이동 스테퍼 - hideStepper가 true면 숨김 */}
+      {!hideStepper && (
+        <div className="makeStepper">
+          <button type="button" className={makeStage === "bg" ? "stage on" : "stage"} onClick={() => goStage("bg")}>
+            ① 바탕 만들기
+          </button>
 
-        <button type="button" className={makeStage === "draw" ? "stage on" : "stage"} onClick={() => goStage("draw")}>
-          ② 그림 그리기
-        </button>
+          <button type="button" className={makeStage === "draw" ? "stage on" : "stage"} onClick={() => goStage("draw")}>
+            ② 그림 그리기
+          </button>
 
-        <button type="button" className={makeStage === "card" ? "stage on" : "stage"} onClick={() => goStage("card")}>
-          ③ 제목/발표 카드
-        </button>
-      </div>
+          <button type="button" className={makeStage === "card" ? "stage on" : "stage"} onClick={() => goStage("card")}>
+            ③ 제목/발표 카드
+          </button>
+        </div>
+      )}
 
       {/* ② 바탕 만들기 */}
       {makeStage === "bg" && (

@@ -1,21 +1,16 @@
 ﻿import { useState, useEffect } from "react";
 import PriHeader from "./components/PriHeader";
-import FractalIntro from "./components/FractalIntro";
-import NatureFractals from "./components/NatureFractals";
-import MakeFractal from "./components/MakeFractal";
-
-
-import PriQuiz from "./components/PriQuiz";
-import PriChat from "./components/PriChat";
+import Step1Foundation from "./components/Step1Foundation";
+import { MakeFractal } from "./components/MakeFractal";
+import Step3Presentation from "./components/Step3Presentation";
 import ClassAuthGate from "./components/ClassAuthGate";
 import ChatPanel from "./components/ChatPanel";
-import TeacherDashboard from "./components/TeacherDashboard";
 import Footer from "./components/Footer";
 import { waitForAuthReady } from "./auth/classAuth";
 import "./App.css";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("intro");
+  const [currentStep, setCurrentStep] = useState(1); // 1: 바탕 만들기, 2: 그림 그리기, 3: 제목·발표 카드
   const [showChatPanel, setShowChatPanel] = useState(false);
   const [workContext, setWorkContext] = useState({});
   const [authReady, setAuthReady] = useState(false);
@@ -37,64 +32,50 @@ function App() {
       )}
 
       <main className="app-main">
-        <div className="tabs">
+        {/* 3단계 네비게이션 버튼 */}
+        <div className="main-stepper">
           <button
             type="button"
-            className={`tab-button ${activeTab === "intro" ? "active" : ""}`}
-            onClick={() => setActiveTab("intro")}
+            className={`main-step-btn ${currentStep === 1 ? "active" : ""}`}
+            onClick={() => setCurrentStep(1)}
           >
-            <span className="tab-icon">🔍</span>
-            <span className="tab-text">프랙탈이 뭐야?</span>
+            <span className="step-number">①</span>
+            <span className="step-label">바탕 만들기</span>
           </button>
 
           <button
             type="button"
-            className={`tab-button ${activeTab === "nature" ? "active" : ""}`}
-            onClick={() => setActiveTab("nature")}
+            className={`main-step-btn ${currentStep === 2 ? "active" : ""}`}
+            onClick={() => setCurrentStep(2)}
           >
-            <span className="tab-icon">🌿</span>
-            <span className="tab-text">자연 속 프랙탈</span>
+            <span className="step-number">②</span>
+            <span className="step-label">그림 그리기</span>
           </button>
 
-            <button
-              type="button"
-              className={`tab-button ${activeTab === "make" ? "active" : ""}`}
-              onClick={() => setActiveTab("make")}
-            >
-              <span className="tab-icon">✨</span>
-              <span className="tab-text">프랙탈 직접 만들기</span>
-            </button>
-
-            <button
-              type="button"
-              className={`tab-button ${activeTab === "chat" ? "active" : ""}`}
-              onClick={() => setActiveTab("chat")}
-            >
-              <span className="tab-icon">🧚</span>
-              <span className="tab-text">프리에게 질문하기</span>
-            </button>
-
-            <button
-              type="button"
-              className={`tab-button ${activeTab === "quiz" ? "active" : ""}`}
-              onClick={() => setActiveTab("quiz")}
-            >
-              <span className="tab-icon">🎯</span>
-              <span className="tab-text">퀴즈로 마무리</span>
-            </button>
+          <button
+            type="button"
+            className={`main-step-btn ${currentStep === 3 ? "active" : ""}`}
+            onClick={() => setCurrentStep(3)}
+          >
+            <span className="step-number">③</span>
+            <span className="step-label">제목·발표 카드</span>
+          </button>
         </div>
 
-          <div className="tab-content">
-            {activeTab === "intro" && <FractalIntro />}
-            {activeTab === "nature" && <NatureFractals />}
-            {activeTab === "make" && (
-              <ClassAuthGate>
-                <MakeFractal onWorkContextChange={setWorkContext} />
-              </ClassAuthGate>
-            )}
-            {activeTab === "quiz" && <PriQuiz />}
-            {activeTab === "chat" && <PriChat />}
-          </div>
+        {/* 단계별 콘텐츠 */}
+        <div className="step-content">
+          {currentStep === 1 && <Step1Foundation />}
+          {currentStep === 2 && (
+            <ClassAuthGate>
+              <MakeFractal 
+                onWorkContextChange={setWorkContext}
+                initialStage="draw"
+                hideStepper={true}
+              />
+            </ClassAuthGate>
+          )}
+          {currentStep === 3 && <Step3Presentation workContext={workContext} />}
+        </div>
       </main>
       
       <Footer />
