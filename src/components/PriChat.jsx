@@ -397,7 +397,7 @@ function PriChat({ workContext }) {
       <div className="pri-chat">
         <div className="chat-header">
           <h2 className="chat-title">프랙탈 요정 프리 🧚</h2>
-          <p className="chat-subtitle">아래 질문 버튼을 클릭하면 프리가 답변해줄 거예요!</p>
+          <p className="chat-subtitle">위의 질문 버튼을 클릭하면 프리가 대답해줄 거에요.</p>
         </div>
 
         <div className="chat-messages">
