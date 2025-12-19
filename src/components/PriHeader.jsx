@@ -22,7 +22,7 @@ export default function PriHeader({ onOpenChat }) {
           {/* 가운데 텍스트 */}
           <div className="pri-header-text">
             <h1 className="pri-header-title">
-              프랙탈 요정 프리 (PRI)
+              프랙탈 요정 프리와 떠나는 <span className="nowrap">패턴탐험</span>
             </h1>
             <p className="pri-header-subtitle">
               Pattern, Repeat, Idea의 줄임말

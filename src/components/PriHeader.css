@@ -146,6 +146,11 @@
   justify-content: center;
   gap: 12px;
   line-height: 1.2;
+  flex-wrap: wrap;
+}
+
+.pri-header-title .nowrap {
+  white-space: nowrap;
 }
 
 .pri-header-title::before {
