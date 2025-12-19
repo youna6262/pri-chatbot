@@ -105,22 +105,35 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
   // 현재 툴 스타일 적용
   const applyToolStyle = (ctx) => {
     if (!ctx) return;
+    
+    // 공통 설정
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    
     if (tool === "pen") {
+      // 펜: 선명/불투명/얇고 또렷 (잉크펜 느낌)
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = penColor;
       ctx.lineWidth = penWidth;
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1.0;
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     } else if (tool === "highlighter") {
+      // 형광펜: 넓고 반투명 + 겹치면 진해지게 (칠한 느낌)
       ctx.globalCompositeOperation = "multiply";
       ctx.strokeStyle = highlighterColor;
       ctx.lineWidth = highlighterWidth;
-      ctx.globalAlpha = 0.4;
+      ctx.globalAlpha = 0.35; // 반투명 (0.25 ~ 0.45 범위)
+      ctx.shadowBlur = 6; // 부드러운 가장자리
+      ctx.shadowColor = highlighterColor; // 색이 살짝 번지는 느낌
     } else if (tool === "eraser") {
       // 지우개: 투명으로 파내기
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
       ctx.lineWidth = eraserWidth;
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1.0;
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
     }
   };
 
@@ -178,6 +191,15 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     setIsDrawing(true);
   };
 
+  // 형광펜에만 미세한 노이즈(흔들림) 추가 (칠한 느낌)
+  const jitterPoint = (p, amount = 0.4) => {
+    if (tool !== "highlighter") return p;
+    return {
+      x: p.x + (Math.random() - 0.5) * amount,
+      y: p.y + (Math.random() - 0.5) * amount,
+    };
+  };
+
   const onPointerMove = (e) => {
     if (!isDrawing) return;
     const c = drawRef.current;
@@ -188,7 +210,15 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     const ctx = c.getContext("2d");
     applyToolStyle(ctx);
 
-    const { x, y } = getPoint(e);
+    let { x, y } = getPoint(e);
+    
+    // 형광펜에만 노이즈 적용
+    if (tool === "highlighter") {
+      const jittered = jitterPoint({ x, y }, 0.8);
+      x = jittered.x;
+      y = jittered.y;
+    }
+    
     ctx.lineTo(x, y);
     ctx.stroke();
     last.current = { x, y };
