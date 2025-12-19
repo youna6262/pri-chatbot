@@ -11,7 +11,7 @@ function PriChat({ workContext }) {
     {
       id: 1,
       role: "bot",
-      text: "안녕! 나는 프랙탈 요정 프리야. 합동, 대칭, 프랙탈에 대해 뭐든 물어봐!",
+      text: "안녕! 나는 프랙탈 요정 프리야 ✨\n아래에서 궁금한 질문을 골라보거나,\n직접 질문해도 돼!",
     },
   ]);
 
@@ -126,21 +126,23 @@ function PriChat({ workContext }) {
     ],
   };
 
-  const handlePromptClick = (promptItem) => {
-    // 퀴즈 형태: 질문 클릭 시 바로 답변 표시
+  const handlePromptClick = async (promptItem) => {
     const questionText = typeof promptItem === 'string' ? promptItem : promptItem.question;
     const answerText = typeof promptItem === 'object' ? promptItem.answer : null;
     
+    // 사용자 메시지 추가
+    const userMessage = {
+      id: Date.now(),
+      role: "user",
+      text: questionText,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue(""); // 입력창 초기화
+    setError("");
+    
+    // 미리 정의된 답변이 있으면 바로 표시
     if (answerText) {
-      // 사용자 메시지 추가
-      const userMessage = {
-        id: Date.now(),
-        role: "user",
-        text: questionText,
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      
-      // 봇 답변 추가
+      setLoading(true);
       setTimeout(() => {
         const botMessage = {
           id: Date.now() + 1,
@@ -148,16 +150,54 @@ function PriChat({ workContext }) {
           text: answerText,
         };
         setMessages((prev) => [...prev, botMessage]);
+        setLoading(false);
       }, 500);
     } else {
-      // 기존 방식 (텍스트만 있는 경우)
-      setInputValue(questionText);
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-          inputRef.current.setSelectionRange(questionText.length, questionText.length);
+      // API 호출이 필요한 경우
+      setLoading(true);
+      try {
+        if (!isAuthenticated || !auth.currentUser) {
+          setError("로그인이 필요해요. 먼저 학급에 입장해주세요! 🔐");
+          setLoading(false);
+          return;
         }
-      }, 0);
+
+        const history = messages.slice(-10).map(m => ({
+          role: m.role === "bot" ? "assistant" : "user",
+          content: m.text,
+        }));
+
+        const res = await chatPri({
+          question: questionText,
+          history,
+          workContext: workContext ? {
+            title: workContext.title,
+            pri: workContext.pri,
+            type: workContext.type,
+            depth: workContext.depth,
+            strokeSummary: workContext.strokeSummary,
+          } : undefined,
+        });
+
+        const responseText = res.data?.shortAnswer || res.data?.raw || res.data?.text || res.data || "음... 잠깐만 생각해볼게! 🧚";
+        const botMessage = {
+          id: Date.now() + 1,
+          role: "bot",
+          text: responseText,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } catch (err) {
+        console.error("❌ chatPri error:", err);
+        const fallbackAnswer = getFallbackAnswer(questionText);
+        const botMessage = {
+          id: Date.now() + 1,
+          role: "bot",
+          text: fallbackAnswer,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -197,9 +237,6 @@ function PriChat({ workContext }) {
   };
 
   const handleSend = async () => {
-    // 자유 입력 기능 완전 비활성화 - 정해진 질문 버튼만 사용 가능
-    console.log("자유 입력은 비활성화되어 있습니다. 정해진 질문 버튼을 사용해주세요.");
-    return;
     const userInput = inputValue.trim();
     if (userInput === "" || loading) return;
 
@@ -336,68 +373,61 @@ function PriChat({ workContext }) {
 
   return (
     <div className="pri-chat-wrapper">
-      {/* ✅ 추천 프롬프트(3섹션) */}
-      <div className="suggested-prompts-banner">
-        <div className="prompts-head">
-          <h3 className="prompts-title">프리에게 이렇게 물어보세요!</h3>
-        </div>
-
-        <div className="promptSections">
-          <div className="promptSection">
-            <div className="promptTitle">🔎 프랙탈 원리</div>
-            <div className="prompts-container">
-              {promptSets.principle.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-button"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="promptSection">
-            <div className="promptTitle">🏷️ 제목 · 발표 · 공유</div>
-            <div className="prompts-container">
-              {promptSets.title.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-button"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="promptSection">
-            <div className="promptTitle">🤝 AI 윤리 마무리</div>
-            <div className="prompts-container">
-              {promptSets.ethics.map((prompt, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="prompt-button"
-                  onClick={() => handlePromptClick(prompt)}
-                >
-                  {prompt.question}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* 채팅 */}
       <div className="pri-chat">
         <div className="chat-header">
           <h2 className="chat-title">프랙탈 요정 프리 🧚</h2>
-          <p className="chat-subtitle">위의 질문 버튼을 클릭하면 프리가 대답해줄 거에요.</p>
+        </div>
+
+        {/* 질문 예시 카테고리 */}
+        <div className="chat-prompts-section">
+          <div className="prompt-category">
+            <div className="category-title">🔍 프랙탈 원리</div>
+            <div className="prompt-chips">
+              {promptSets.principle.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="prompt-chip"
+                  onClick={() => handlePromptClick(prompt)}
+                >
+                  {prompt.question}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="prompt-category">
+            <div className="category-title">🏷 제목·발표·공유</div>
+            <div className="prompt-chips">
+              {promptSets.title.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="prompt-chip"
+                  onClick={() => handlePromptClick(prompt)}
+                >
+                  {prompt.question}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="prompt-category">
+            <div className="category-title">🤝 AI 윤리 마무리</div>
+            <div className="prompt-chips">
+              {promptSets.ethics.map((prompt, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="prompt-chip"
+                  onClick={() => handlePromptClick(prompt)}
+                >
+                  {prompt.question}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="chat-messages">
@@ -434,6 +464,27 @@ function PriChat({ workContext }) {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* 입력창 */}
+        <div className="chat-input-container">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="직접 질문하기... ✨"
+            className="chat-input"
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={loading || !inputValue.trim()}
+            className="chat-send-btn"
+          >
+            전송
+          </button>
+        </div>
       </div>
 
       {/* 약속 체크박스 + 마무리 */}
