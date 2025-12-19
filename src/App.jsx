@@ -8,6 +8,7 @@ import PriChat from "./components/PriChat";
 import ClassAuthGate from "./components/ClassAuthGate";
 import ChatPanel from "./components/ChatPanel";
 import Footer from "./components/Footer";
+import FractalTopNav from "./components/FractalTopNav";
 import { waitForAuthReady } from "./auth/classAuth";
 import "./App.css";
 
@@ -34,53 +35,21 @@ function App() {
       )}
 
       <main className="app-main">
-        {/* 5개 메뉴 탭 - 단계형 UI 스타일 */}
-        <div className="main-stepper">
-          <button
-            type="button"
-            className={`main-step-btn ${activeTab === "intro" ? "active" : ""}`}
-            onClick={() => setActiveTab("intro")}
-          >
-            <span className="step-icon">🔍</span>
-            <span className="step-label">프랙탈이 뭐야?</span>
-          </button>
-
-          <button
-            type="button"
-            className={`main-step-btn ${activeTab === "nature" ? "active" : ""}`}
-            onClick={() => setActiveTab("nature")}
-          >
-            <span className="step-icon">🌿</span>
-            <span className="step-label">자연 속 프랙탈</span>
-          </button>
-
-          <button
-            type="button"
-            className={`main-step-btn ${activeTab === "make" ? "active" : ""}`}
-            onClick={() => setActiveTab("make")}
-          >
-            <span className="step-icon">✨</span>
-            <span className="step-label">프랙탈 직접 만들기</span>
-          </button>
-
-          <button
-            type="button"
-            className={`main-step-btn ${activeTab === "chat" ? "active" : ""}`}
-            onClick={() => setActiveTab("chat")}
-          >
-            <span className="step-icon">🧚</span>
-            <span className="step-label">프리에게 질문하기</span>
-          </button>
-
-          <button
-            type="button"
-            className={`main-step-btn ${activeTab === "quiz" ? "active" : ""}`}
-            onClick={() => setActiveTab("quiz")}
-          >
-            <span className="step-icon">🎯</span>
-            <span className="step-label">퀴즈로 마무리</span>
-          </button>
-        </div>
+        {/* 5개 메뉴 탭 - 동화책 파스텔 스티커 스타일 */}
+        <FractalTopNav
+          activeKey={activeTab === "intro" ? "what" : 
+                    activeTab === "nature" ? "nature" :
+                    activeTab === "make" ? "make" :
+                    activeTab === "chat" ? "ask" :
+                    activeTab === "quiz" ? "quiz" : "what"}
+          onSelect={(key) => {
+            if (key === "what") setActiveTab("intro");
+            else if (key === "nature") setActiveTab("nature");
+            else if (key === "make") setActiveTab("make");
+            else if (key === "ask") setActiveTab("chat");
+            else if (key === "quiz") setActiveTab("quiz");
+          }}
+        />
 
         {/* 탭별 콘텐츠 */}
         <div className="tab-content">

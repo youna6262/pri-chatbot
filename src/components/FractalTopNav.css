@@ -1,0 +1,159 @@
+/* FractalTopNav - 동화책 파스텔 스티커 스타일 */
+.fractal-nav {
+  width: 100%;
+  margin: 24px 0;
+}
+
+.fractal-nav__rail {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* 말풍선 스티커형 캡슐 버튼 */
+.fractal-nav__pill {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 160px;
+  height: 54px;
+  padding: 0 22px 0 20px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 182, 193, 0.35);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: visible;
+  white-space: nowrap;
+  
+  /* 비활성 스타일 - 부드러운 파스텔 */
+  background: linear-gradient(135deg, #FFF5F8 0%, #F8F0FF 100%);
+  color: #D81B60;
+  box-shadow: 0 3px 12px rgba(255, 182, 193, 0.18), 
+              inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.fractal-nav__pill:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3), 
+              inset 0 1px 2px rgba(255, 255, 255, 1);
+  border-color: rgba(255, 182, 193, 0.5);
+  background: linear-gradient(135deg, #FFEBF0 0%, #F5E8FF 100%);
+}
+
+.fractal-nav__pill:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* 활성 메뉴 - 부드러운 파스텔 그라데이션 + 떠 있는 느낌 */
+.fractal-nav__pill.is-active {
+  background: linear-gradient(135deg, #FF9ACB 0%, #FFB3D9 40%, #E1BEE7 80%, #F8BBD0 100%);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 6px 24px rgba(255, 154, 203, 0.45), 
+              0 0 0 3px rgba(255, 154, 203, 0.2),
+              inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px) scale(1.08);
+  animation: fairyFloat 3s ease-in-out infinite;
+}
+
+@keyframes fairyFloat {
+  0%, 100% {
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 6px 24px rgba(255, 154, 203, 0.45), 
+                0 0 0 3px rgba(255, 154, 203, 0.2),
+                inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    transform: translateY(-4px) scale(1.1);
+    box-shadow: 0 8px 28px rgba(255, 154, 203, 0.55), 
+                0 0 0 4px rgba(255, 154, 203, 0.25),
+                inset 0 2px 5px rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* 아이콘 */
+.fractal-nav__icon {
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.06));
+  transition: transform 0.3s ease;
+}
+
+.fractal-nav__pill:hover .fractal-nav__icon {
+  transform: scale(1.12);
+}
+
+.fractal-nav__pill.is-active .fractal-nav__icon {
+  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5));
+  animation: iconSparkle 2.5s ease-in-out infinite;
+}
+
+@keyframes iconSparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(0deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+/* 텍스트 라벨 */
+.fractal-nav__label {
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.fractal-nav__pill.is-active .fractal-nav__label {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .fractal-nav {
+    margin: 20px 0;
+  }
+
+  .fractal-nav__rail {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .fractal-nav__pill {
+    min-width: 140px;
+    height: 50px;
+    font-size: 15px;
+    padding: 0 18px 0 16px;
+    gap: 8px;
+  }
+
+  .fractal-nav__icon {
+    font-size: 22px;
+  }
+
+  .fractal-nav__label {
+    font-size: 15px;
+  }
+}
+
