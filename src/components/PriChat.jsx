@@ -7,13 +7,7 @@ import "./PriChat.css";
 
 // ✅ workContext를 props로 받음 (없어도 동작)
 function PriChat({ workContext }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: "bot",
-      text: "안녕! 나는 프랙탈 요정 프리야 ✨\n아래에서 궁금한 질문을 골라보거나,\n직접 질문해도 돼!",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -430,6 +424,14 @@ function PriChat({ workContext }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* 프리 안내 문구 - 카테고리/질문 카드 아래에 1회만 표시 */}
+        <div className="pri-intro-message">
+          <p className="intro-text">
+            안녕! 나는 프랙탈 요정 프리야 ✨<br />
+            AI 윤리에 대해 물어보고 싶은 게 있으면 위 질문 버튼을 클릭해봐! 🧚
+          </p>
         </div>
 
         <div className="chat-messages">
