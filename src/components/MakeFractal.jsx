@@ -50,6 +50,13 @@ function drawStroke(ctx, stroke) {
   if (stroke.tool === "eraser") {
     ctx.globalCompositeOperation = "destination-out";
     ctx.strokeStyle = "rgba(0,0,0,1)";
+  } else if (stroke.tool === "highlighter" || stroke.mode === "highlighter") {
+    ctx.globalCompositeOperation = "multiply";
+    // 형광펜: 색상에 투명도 적용
+    const color = stroke.color || "#FFFF00";
+    ctx.strokeStyle = color.replace("#", "").match(/.{1,2}/g)
+      ? `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, 0.4)`
+      : `rgba(255, 255, 0, 0.4)`;
   } else {
     ctx.globalCompositeOperation = "source-over";
     ctx.strokeStyle = stroke.color || "#111827";
@@ -122,9 +129,10 @@ export function MakeFractal({
 
   const [title, setTitle] = useState("");
   const [studentName, setStudentName] = useState("");
-  const [tool, setTool] = useState("pen"); // 'pen' | 'eraser'
+  const [tool, setTool] = useState("pen"); // 'pen' | 'highlighter' | 'eraser'
   const [penColor, setPenColor] = useState("#111111");
   const [penSize, setPenSize] = useState(8);
+  const [highlighterSize, setHighlighterSize] = useState(20);
   const [eraserSize, setEraserSize] = useState(16);
   const [drawLock, setDrawLock] = useState(true);   // 🔒 그리기 모드(스크롤/줌 잠금)
   const [allowMouse, setAllowMouse] = useState(true); // ✅ 기본 true(개발 편함)
@@ -281,20 +289,25 @@ export function MakeFractal({
     }
   };
 
-  // 그림 캔버스만 다시 그리기 (바탕은 그대로)
+  // 그림 캔버스만 다시 그리기 (바탕은 그대로) - 실시간 드로잉용
   function redrawDrawCanvas() {
+    const stage = stageRef.current;
+    if (!stage) return;
+    
     const c = drawCanvasRef.current || drawRef.current;
     if (!c) return;
+    
+    const s2 = resizeCanvasToStage(c, stage);
+    sizeRef.current = { width: s2.width, height: s2.height };
+    
     const ctx = c.getContext("2d");
-
-    const { width: w, height: h } = resizeCanvas(c);
-    ctx.clearRect(0, 0, w, h); // ✅ 이걸로만
+    ctx.clearRect(0, 0, s2.width, s2.height);
 
     // 완료된 strokes 그리기
     strokesRef.current.forEach(st => {
       const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * w,
-        y: p.y * h
+        x: p.x * s2.width,
+        y: p.y * s2.height
       }));
       drawStroke(ctx, { ...st, points: pixelPoints });
     });
@@ -303,8 +316,8 @@ export function MakeFractal({
     if (currentStrokeRef.current) {
       const st = currentStrokeRef.current;
       const pixelPoints = (st.points || []).map(p => ({
-        x: p.x * w,
-        y: p.y * h
+        x: p.x * s2.width,
+        y: p.y * s2.height
       }));
       drawStroke(ctx, { ...st, points: pixelPoints });
     }
@@ -398,16 +411,18 @@ export function MakeFractal({
   const getPointFromEvent = (e) => {
     const c = drawCanvasRef.current;
     if (!c) {
-      console.warn("drawCanvasRef.current is null");
       return { x: 0, y: 0 };
     }
     const rect = c.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const dpr = window.devicePixelRatio || 1;
     
-    // 상대 좌표로 변환 (0~1)
-    const relativeX = Math.max(0, Math.min(1, x / rect.width));
-    const relativeY = Math.max(0, Math.min(1, y / rect.height));
+    // 실제 픽셀 좌표 계산 (DPR 고려)
+    const x = (e.clientX - rect.left) * dpr;
+    const y = (e.clientY - rect.top) * dpr;
+    
+    // 캔버스 크기로 정규화 (0~1)
+    const relativeX = Math.max(0, Math.min(1, x / (rect.width * dpr)));
+    const relativeY = Math.max(0, Math.min(1, y / (rect.height * dpr)));
     
     return { x: relativeX, y: relativeY };
   };
@@ -415,14 +430,14 @@ export function MakeFractal({
   const startStroke = (pt) => {
     const stroke = {
       id: crypto.randomUUID(),
-      mode: tool === "eraser" ? "erase" : "pen",
+      mode: tool === "eraser" ? "erase" : tool === "highlighter" ? "highlighter" : "pen",
       tool,
-      color: tool === "pen" ? penColor : "#000000",
-      size: tool === "pen" ? penSize : eraserSize,
+      color: tool === "pen" ? penColor : tool === "highlighter" ? penColor : "#000000",
+      size: tool === "pen" ? penSize : tool === "highlighter" ? highlighterSize : eraserSize,
       points: [pt],
     };
     currentStrokeRef.current = stroke;
-    redoRef.current = []; // ✅ 새로 그리면 redo 초기화
+    redoRef.current = [];
   };
 
   const addPoint = (pt) => {
@@ -434,31 +449,21 @@ export function MakeFractal({
     if (!currentStrokeRef.current) return;
     strokesRef.current.push(currentStrokeRef.current);
     currentStrokeRef.current = null;
-    redrawAll(); // stroke 확정 후 화면 다시 그리기
+    redrawDrawCanvas(); // stroke 확정 후 화면 다시 그리기
   };
 
 
   const canDraw = (e) => {
-    // 손가락은 무시
     if (e.pointerType === "touch") return false;
-
-    // 펜은 항상 허용
     if (e.pointerType === "pen") return true;
-
-    // 마우스는 토글로
     if (e.pointerType === "mouse") return !!allowMouse;
-
-    // unknown은 마우스 취급
     return !!allowMouse;
   };
 
   const onPointerDown = (e) => {
     if (makeStage !== "draw") return;
     if (!canDraw(e)) return;
-    if (!drawCanvasRef.current) {
-      console.warn("drawCanvasRef.current is null in onPointerDown");
-      return;
-    }
+    if (!drawCanvasRef.current) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -466,7 +471,7 @@ export function MakeFractal({
     try {
       e.currentTarget.setPointerCapture?.(e.pointerId);
     } catch (err) {
-      // setPointerCapture 실패는 무시 (일부 브라우저에서 지원 안 함)
+      // 무시
     }
 
     activePointerIdRef.current = e.pointerId;
@@ -475,16 +480,15 @@ export function MakeFractal({
 
     const pt = getPointFromEvent(e);
     startStroke(pt);
-    redrawAll();
+    redrawDrawCanvas();
   };
 
   const onPointerMove = (e) => {
     if (!isDrawingRef.current) return;
     if (activePointerIdRef.current !== null && activePointerIdRef.current !== e.pointerId) {
-      return; // 다른 포인터 무시
+      return;
     }
 
-    // 마우스는 버튼 누른 상태가 아니면 중단 (크롬/윈도우에서 안정성↑)
     if (activePointerTypeRef.current === "mouse" && e.buttons === 0) {
       onPointerUp(e);
       return;
@@ -498,13 +502,12 @@ export function MakeFractal({
     
     const pt = getPointFromEvent(e);
     addPoint(pt);
-    redrawAll();
+    redrawDrawCanvas();
   };
 
   const onPointerUp = (e) => {
     if (!isDrawingRef.current) return;
     
-    // pointercapture를 놓치면 up이 다른 id로 올 수 있어서 느슨하게 처리
     isDrawingRef.current = false;
     activePointerIdRef.current = null;
     activePointerTypeRef.current = null;
@@ -512,11 +515,11 @@ export function MakeFractal({
     try {
       e.currentTarget.releasePointerCapture?.(e.pointerId);
     } catch (err) {
-      console.warn("releasePointerCapture failed:", err);
+      // 무시
     }
     
     endStroke();
-    redrawAll();
+    redrawDrawCanvas();
   };
 
   const undo = () => {
@@ -1006,6 +1009,9 @@ export function MakeFractal({
             <button type="button" className={`tool ${tool==="pen"?"on":""}`} onClick={() => setTool("pen")}>
               ✏️ 펜
             </button>
+            <button type="button" className={`tool ${tool==="highlighter"?"on":""}`} onClick={() => setTool("highlighter")}>
+              🖍️ 형광펜
+            </button>
             <button type="button" className={`tool ${tool==="eraser"?"on":""}`} onClick={() => setTool("eraser")}>
               🧽 지우개
             </button>
@@ -1069,6 +1075,40 @@ export function MakeFractal({
                     max="18"
                     value={penSize}
                     onChange={(e) => setPenSize(Number(e.target.value))}
+                  />
+                </label>
+              </>
+            ) : tool === "highlighter" ? (
+              <>
+                <button
+                  type="button"
+                  className={highlighterSize <= 16 ? "tool chip on" : "tool chip"}
+                  onClick={() => setHighlighterSize(16)}
+                >
+                  얇게
+                </button>
+                <button
+                  type="button"
+                  className={highlighterSize > 16 && highlighterSize <= 24 ? "tool chip on" : "tool chip"}
+                  onClick={() => setHighlighterSize(20)}
+                >
+                  보통
+                </button>
+                <button
+                  type="button"
+                  className={highlighterSize > 24 ? "tool chip on" : "tool chip"}
+                  onClick={() => setHighlighterSize(32)}
+                >
+                  굵게
+                </button>
+                <label className="mini">
+                  <span className="toolLabel">세밀</span>
+                  <input
+                    type="range"
+                    min="12"
+                    max="40"
+                    value={highlighterSize}
+                    onChange={(e) => setHighlighterSize(Number(e.target.value))}
                   />
                 </label>
               </>
