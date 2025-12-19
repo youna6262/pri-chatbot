@@ -19,7 +19,7 @@ function App() {
   const [workContext, setWorkContext] = useState({});
   const [authReady, setAuthReady] = useState(false);
 
-  // ?????쒖옉 ???몄쬆 ?湲?  useEffect(() => {
+  useEffect(() => {
     waitForAuthReady().then(() => setAuthReady(true));
   }, []);
 
@@ -42,7 +42,7 @@ function App() {
             className={`tab-button ${activeTab === "intro" ? "active" : ""}`}
             onClick={() => setActiveTab("intro")}
           >
-            ?꾨옓?덉씠??
+            ?꾨옓?덉씠??
           </button>
 
           <button
@@ -50,14 +50,16 @@ function App() {
             className={`tab-button ${activeTab === "nature" ? "active" : ""}`}
             onClick={() => setActiveTab("nature")}
           >
-            ?먯뿰 ???꾨옓??          </button>
+            ?먯뿰 ???꾨옓??
+          </button>
 
             <button
               type="button"
               className={`tab-button ${activeTab === "make" ? "active" : ""}`}
               onClick={() => setActiveTab("make")}
             >
-              吏곸젒 留뚮뱾湲?            </button>
+              吏곸젒 留뚮뱾湲?
+            </button>
 
             <button
               type="button"
