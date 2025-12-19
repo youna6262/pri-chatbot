@@ -41,9 +41,9 @@ function App() {
             className={`main-step-btn ${activeTab === "intro" ? "active" : ""}`}
             onClick={() => setActiveTab("intro")}
           >
-            <span className="step-number">①</span>
             <span className="step-icon">🔍</span>
             <span className="step-label">프랙탈이 뭐야?</span>
+            <span className="step-badge">1</span>
           </button>
 
           <button
@@ -51,9 +51,9 @@ function App() {
             className={`main-step-btn ${activeTab === "nature" ? "active" : ""}`}
             onClick={() => setActiveTab("nature")}
           >
-            <span className="step-number">②</span>
             <span className="step-icon">🌿</span>
             <span className="step-label">자연 속 프랙탈</span>
+            <span className="step-badge">2</span>
           </button>
 
           <button
@@ -61,9 +61,9 @@ function App() {
             className={`main-step-btn ${activeTab === "make" ? "active" : ""}`}
             onClick={() => setActiveTab("make")}
           >
-            <span className="step-number">③</span>
             <span className="step-icon">✨</span>
             <span className="step-label">프랙탈 직접 만들기</span>
+            <span className="step-badge">3</span>
           </button>
 
           <button
@@ -71,9 +71,9 @@ function App() {
             className={`main-step-btn ${activeTab === "chat" ? "active" : ""}`}
             onClick={() => setActiveTab("chat")}
           >
-            <span className="step-number">④</span>
             <span className="step-icon">🧚</span>
             <span className="step-label">프리에게 질문하기</span>
+            <span className="step-badge">4</span>
           </button>
 
           <button
@@ -81,9 +81,9 @@ function App() {
             className={`main-step-btn ${activeTab === "quiz" ? "active" : ""}`}
             onClick={() => setActiveTab("quiz")}
           >
-            <span className="step-number">⑤</span>
             <span className="step-icon">🎯</span>
             <span className="step-label">퀴즈로 마무리</span>
+            <span className="step-badge">5</span>
           </button>
         </div>
 
