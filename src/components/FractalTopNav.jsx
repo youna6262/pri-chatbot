@@ -23,7 +23,7 @@ export default function FractalTopNav({
   return (
     <nav className={`fractal-nav ${className}`} aria-label="상단 메뉴">
       <div className="fractal-nav__rail" role="tablist" aria-orientation="horizontal">
-        {items.map((item) => {
+        {items.map((item, idx) => {
           const isActive = item.key === activeKey;
           return (
             <button
@@ -35,6 +35,9 @@ export default function FractalTopNav({
               aria-selected={isActive}
               aria-current={isActive ? "page" : undefined}
             >
+              <span className="fractal-nav__badge" aria-hidden="true">
+                {idx + 1}
+              </span>
               <span className="fractal-nav__icon" aria-hidden="true">
                 {item.icon}
               </span>
