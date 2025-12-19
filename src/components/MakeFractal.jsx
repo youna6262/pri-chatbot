@@ -1238,3 +1238,5 @@ export function MakeFractal({
     </div>
   );
 }
+export default MakeFractal;
+

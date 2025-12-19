@@ -394,7 +394,7 @@ function PriChat({ workContext }) {
       <div className="pri-chat">
         <div className="chat-header">
           <h2 className="chat-title">프랙탈 요정 프리 🧚</h2>
-          <p className="chat-subtitle">합동·대칭·프랙탈·코딩에 대해 무엇이든 물어보세요.</p>
+          <p className="chat-subtitle">아래 질문 버튼을 클릭하면 프리가 답변해줄 거예요!</p>
         </div>
 
         <div className="chat-messages">
@@ -431,7 +431,7 @@ function PriChat({ workContext }) {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="chat-input-container">
+        <div className="chat-input-container" style={{ display: 'none' }}>
           <input
             ref={inputRef}
             type="text"
@@ -440,8 +440,9 @@ function PriChat({ workContext }) {
             onKeyDown={handleKeyDown}
             placeholder="메시지를 입력하세요..."
             className="chat-input"
+            disabled
           />
-          <button type="button" onClick={handleSend} className="send-button">
+          <button type="button" onClick={handleSend} className="send-button" disabled>
             보내기
           </button>
         </div>

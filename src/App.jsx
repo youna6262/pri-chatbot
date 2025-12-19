@@ -2,7 +2,8 @@
 import PriHeader from "./components/PriHeader";
 import FractalIntro from "./components/FractalIntro";
 import NatureFractals from "./components/NatureFractals";
-import { MakeFractal } from "./components/MakeFractal";
+import MakeFractal from "./components/MakeFractal";
+
 
 import PriQuiz from "./components/PriQuiz";
 import PriChat from "./components/PriChat";
@@ -42,7 +43,7 @@ function App() {
             className={`tab-button ${activeTab === "intro" ? "active" : ""}`}
             onClick={() => setActiveTab("intro")}
           >
-            ?꾨옓?덉씠??
+            프랙탈이 뭐야?
           </button>
 
           <button
@@ -50,7 +51,7 @@ function App() {
             className={`tab-button ${activeTab === "nature" ? "active" : ""}`}
             onClick={() => setActiveTab("nature")}
           >
-            ?먯뿰 ???꾨옓??
+            자연 속 프랙탈
           </button>
 
             <button
@@ -58,7 +59,7 @@ function App() {
               className={`tab-button ${activeTab === "make" ? "active" : ""}`}
               onClick={() => setActiveTab("make")}
             >
-              吏곸젒 留뚮뱾湲?
+              프랙탈 직접 만들기
             </button>
 
             <button
@@ -66,7 +67,7 @@ function App() {
               className={`tab-button ${activeTab === "chat" ? "active" : ""}`}
               onClick={() => setActiveTab("chat")}
             >
-              ?꾨━?먭쾶 吏덈Ц?섍린
+              프리에게 질문하기
             </button>
 
             <button
@@ -74,7 +75,7 @@ function App() {
               className={`tab-button ${activeTab === "quiz" ? "active" : ""}`}
               onClick={() => setActiveTab("quiz")}
             >
-              ?쭦?띯?截??꾨━ ?댁쫰
+              퀴즈로 마무리
             </button>
         </div>
 
