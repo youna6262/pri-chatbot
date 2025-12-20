@@ -35,23 +35,15 @@ function App() {
       )}
 
       <main className="app-main">
-        {/* 5개 메뉴 탭 - 동화책 파스텔 스티커 스타일 */}
         <FractalTopNav
-          activeKey={activeTab === "intro" ? "what" : 
-                    activeTab === "nature" ? "nature" :
-                    activeTab === "make" ? "make" :
-                    activeTab === "chat" ? "ask" :
-                    activeTab === "quiz" ? "quiz" : "what"}
+          activeKey={activeTab === "intro" ? "what" : activeTab === "chat" ? "ask" : activeTab}
           onSelect={(key) => {
             if (key === "what") setActiveTab("intro");
-            else if (key === "nature") setActiveTab("nature");
-            else if (key === "make") setActiveTab("make");
             else if (key === "ask") setActiveTab("chat");
-            else if (key === "quiz") setActiveTab("quiz");
+            else setActiveTab(key);
           }}
         />
 
-        {/* 탭별 콘텐츠 */}
         <div className="tab-content">
           {activeTab === "intro" && <FractalIntro />}
           {activeTab === "nature" && <NatureFractals />}
@@ -64,7 +56,7 @@ function App() {
           {activeTab === "quiz" && <PriQuiz />}
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

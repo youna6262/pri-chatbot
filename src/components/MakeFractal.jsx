@@ -53,6 +53,7 @@ export function MakeFractal({
   onMakeStageChange,
   onWorkContextChange,
   onNavigateToChat,
+  onGoChat,
   initialStage = "bg",
   hideStepper = false,
 }) {
@@ -1122,10 +1123,15 @@ export function MakeFractal({
                             type: selectedWork.fractalParams?.type,
                             depth: selectedWork.fractalParams?.depth,
                           });
-                          onNavigateToChat?.();
+                          // ✅ 챗봇 탭으로 이동 (우선순위: onGoChat > onNavigateToChat)
+                          if (onGoChat) {
+                            onGoChat();
+                          } else {
+                            onNavigateToChat?.();
+                          }
                         }}
                       >
-                        🤖 챗봇으로 마무리(원리+제목+AI윤리) ▶
+                        ✨🤖 챗봇으로 마무리(원리+제목+AI윤리)
                       </button>
                     </div>
 
