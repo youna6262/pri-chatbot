@@ -2225,42 +2225,51 @@
    ② 그림 그리기 단계 - Grid 레이아웃
    ============================================ */
 
-/* Grid 레이아웃: 1행(도구/캔버스/질문버튼), 2행(채팅) */
+/* ② 그림 그리기 단계 - Grid 레이아웃 (질문은 채팅 위로 이동) */
 .step2Grid {
   display: grid;
-  grid-template-columns: 280px minmax(560px, 1fr) 320px;
-  grid-template-rows: auto 260px; /* 아래 채팅 높이 */
+  grid-template-columns: 280px minmax(560px, 1fr);
+  grid-template-rows: auto minmax(320px, 42vh); /* ✅ 채팅 높이 유연 */
   gap: 16px;
   align-items: start;
 
   grid-template-areas:
-    "tools canvas prompts"
-    "tools chat  .";
+    "tools canvas"
+    "tools chat";
 }
 
-.step2Grid .tools {
-  grid-area: tools;
-}
-
-.step2Grid .canvas {
-  grid-area: canvas;
-}
-
-.step2Grid .prompts {
-  grid-area: prompts;
-  position: sticky;
-  top: 24px;
-  align-self: start;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
-}
-
-.step2Grid .chat {
+.step2Grid .tools { grid-area: tools; }
+.step2Grid .canvas { grid-area: canvas; }
+.step2Grid .chat  { 
   grid-area: chat;
-  padding-bottom: 20px; /* 하단 배너가 덮지 않도록 여백 확보 */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 작은 화면은 세로로 */
+/* 질문 버튼 영역: 채팅 바로 위 */
+.step2Grid .chatQuick{
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 154, 158, 0.25);
+  background: linear-gradient(135deg, rgba(255,154,158,0.10) 0%, rgba(186,230,253,0.10) 100%);
+  margin-bottom: 8px;
+}
+
+/* 실제 채팅 영역 */
+.step2Grid .chatMain{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden; /* 내부 채팅이 스크롤을 갖도록 */
+}
+
+/* 프랙탈 QA 채팅 루트 안전장치 */
+#fractal-qa-chat-root { 
+  min-height: 0; 
+}
+
+/* 모바일은 세로로 */
 @media (max-width: 1024px) {
   .step2Grid {
     grid-template-columns: 1fr;
@@ -2268,7 +2277,6 @@
     grid-template-areas:
       "tools"
       "canvas"
-      "prompts"
       "chat";
   }
 }

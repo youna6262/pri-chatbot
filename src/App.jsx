@@ -49,7 +49,10 @@ function App() {
           {activeTab === "nature" && <NatureFractals />}
           {activeTab === "make" && (
             <ClassAuthGate>
-              <MakeFractal onWorkContextChange={setWorkContext} />
+              <MakeFractal 
+                onWorkContextChange={setWorkContext}
+                onNavigateToChat={() => setActiveTab("chat")}
+              />
             </ClassAuthGate>
           )}
           {activeTab === "chat" && <PriChat workContext={workContext} />}

@@ -939,14 +939,15 @@ export function MakeFractal({
             </div>
           </main>
 
-          {/* 우측: 프리 질문 버튼 패널 (채팅 위에 고정) */}
-          <aside className="prompts">
-            <div id="fractal-qa-prompts-root"></div>
-          </aside>
-
           {/* 하단: 채팅 영역 */}
           <section className="chat">
-            <div id="fractal-qa-chat-root"></div>
+            <div className="chatQuick">
+              <div id="fractal-qa-prompts-root"></div>
+            </div>
+
+            <div className="chatMain">
+              <div id="fractal-qa-chat-root"></div>
+            </div>
           </section>
         </div>
       )}
@@ -1146,9 +1147,11 @@ export function MakeFractal({
         </div>
       )}
 
-      <div className="muted small">
-        ✅ 프랙탈 바탕은 자동 생성(PRI/단계), 그림은 내가 펜으로 직접 그린 창작이에요.
-      </div>
+      {makeStage !== "draw" && (
+        <div className="muted small">
+          ✅ 프랙탈 바탕은 자동 생성(PRI/단계), 그림은 내가 펜으로 직접 그린 창작이에요.
+        </div>
+      )}
     </div>
   );
 }
