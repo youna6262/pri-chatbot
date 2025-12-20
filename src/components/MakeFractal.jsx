@@ -7,7 +7,7 @@ import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp 
 import { makeThumbnail } from "../utils/makeThumbnail";
 import { downsampleStrokes, getStrokesSize } from "../utils/downsampleStrokes";
 import FractalDrawCanvas, { TOOLS, THICKNESS, DEFAULT_COLOR_BY_TOOL } from "./FractalDrawCanvas";
-import { initFractalQA } from "../utils/fractalQA";
+import { initFractalQA, initFractalQAPrompts, initFractalQAChat } from "../utils/fractalQA";
 
 const STORAGE_KEY = "pri_artworks_v1";
 
@@ -281,7 +281,8 @@ export function MakeFractal({
     if (makeStage === "draw") {
       // DOM이 준비될 때까지 약간의 지연
       const timer = setTimeout(() => {
-        initFractalQA();
+        initFractalQAPrompts(); // 질문 버튼 패널
+        initFractalQAChat(); // 채팅 패널
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -790,9 +791,9 @@ export function MakeFractal({
 
       {/* ③ 그림 그리기 */}
       {makeStage === "draw" && (
-        <div className="page">
+        <div className="step2Grid">
           {/* 좌측: 도구/설정 패널 */}
-          <aside className="leftPanel">
+          <aside className="tools">
             <div className="panel">
               <div className="panelTitle">도구/설정</div>
 
@@ -919,33 +920,33 @@ export function MakeFractal({
             </div>
           </aside>
 
-          {/* 우측: 컨텐츠 패널 (캔버스 + QA) */}
-          <main className="rightPanel">
-            <div className="drawLayout">
-              {/* 왼쪽: 캔버스 */}
-              <section className="canvasCard">
-                <div className="canvasBox">
-                  <FractalDrawCanvas
-                    ref={fractalDrawCanvasRef}
-                    fractalImageUrl={bgSnapshot}
-                    initialTool={tool}
-                    penColor={penColor}
-                    highlighterColor={highlighterColor}
-                    coloredPencilColor={coloredPencilColor}
-                    thicknessMode={thicknessMode}
-                    detail={detail}
-                    onToolChange={setTool}
-                    showToolbar={false}
-                  />
-                </div>
-              </section>
-
-              {/* 오른쪽: 프리 Q&A */}
-              <section className="chatCard">
-                <div id="fractal-qa-root"></div>
-              </section>
+          {/* 중앙: 캔버스 */}
+          <main className="canvas">
+            <div className="canvasBox">
+              <FractalDrawCanvas
+                ref={fractalDrawCanvasRef}
+                fractalImageUrl={bgSnapshot}
+                initialTool={tool}
+                penColor={penColor}
+                highlighterColor={highlighterColor}
+                coloredPencilColor={coloredPencilColor}
+                thicknessMode={thicknessMode}
+                detail={detail}
+                onToolChange={setTool}
+                showToolbar={false}
+              />
             </div>
           </main>
+
+          {/* 우측: 프리 질문 버튼 패널 */}
+          <aside className="prompts">
+            <div id="fractal-qa-prompts-root"></div>
+          </aside>
+
+          {/* 하단: 채팅 영역 */}
+          <section className="chat">
+            <div id="fractal-qa-chat-root"></div>
+          </section>
         </div>
       )}
 

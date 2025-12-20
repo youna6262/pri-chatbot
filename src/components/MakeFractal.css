@@ -2222,10 +2222,52 @@
 }
 
 /* ============================================
-   ② 그림 그리기 단계 - 새로운 2단 레이아웃
+   ② 그림 그리기 단계 - Grid 레이아웃
    ============================================ */
 
-/* 바깥 2단: 좌(도구/설정 패널), 우(컨텐츠 패널) */
+/* Grid 레이아웃: 1행(도구/캔버스/질문버튼), 2행(채팅) */
+.step2Grid {
+  display: grid;
+  grid-template-columns: 280px minmax(560px, 1fr) 320px;
+  grid-template-rows: auto 260px; /* 아래 채팅 높이 */
+  gap: 16px;
+  align-items: start;
+
+  grid-template-areas:
+    "tools canvas prompts"
+    "tools chat  prompts";
+}
+
+.step2Grid .tools {
+  grid-area: tools;
+}
+
+.step2Grid .canvas {
+  grid-area: canvas;
+}
+
+.step2Grid .prompts {
+  grid-area: prompts;
+}
+
+.step2Grid .chat {
+  grid-area: chat;
+}
+
+/* 작은 화면은 세로로 */
+@media (max-width: 1024px) {
+  .step2Grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "tools"
+      "canvas"
+      "prompts"
+      "chat";
+  }
+}
+
+/* 기존 호환성을 위한 클래스들 */
 .page {
   display: flex;
   gap: 24px;
@@ -2242,7 +2284,6 @@
   min-width: 0;
 }
 
-/* 우측 패널 내부 2단: 왼쪽(캔버스), 오른쪽(프리 Q&A) */
 .drawLayout {
   display: flex;
   gap: 16px;
@@ -2291,21 +2332,24 @@
 }
 
 /* 좌측 패널 내부 스타일 조정 */
-.leftPanel .panel {
+.leftPanel .panel,
+.step2Grid .tools .panel {
   position: sticky;
   top: 24px;
   max-height: calc(100vh - 48px);
   overflow-y: auto;
 }
 
-.leftPanel .toolRow {
+.leftPanel .toolRow,
+.step2Grid .tools .toolRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 }
 
-.leftPanel .row {
+.leftPanel .row,
+.step2Grid .tools .row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -2313,17 +2357,20 @@
   margin-bottom: 16px;
 }
 
-.leftPanel .nameRow {
+.leftPanel .nameRow,
+.step2Grid .tools .nameRow {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
 }
 
-.leftPanel .nameRow .titleInput {
+.leftPanel .nameRow .titleInput,
+.step2Grid .tools .nameRow .titleInput {
   width: 100%;
 }
 
-.leftPanel .nameRow button.primary {
+.leftPanel .nameRow button.primary,
+.step2Grid .tools .nameRow button.primary {
   width: 100%;
 }
 
