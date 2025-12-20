@@ -7,6 +7,7 @@ import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp 
 import { makeThumbnail } from "../utils/makeThumbnail";
 import { downsampleStrokes, getStrokesSize } from "../utils/downsampleStrokes";
 import FractalDrawCanvas, { TOOLS, THICKNESS, DEFAULT_COLOR_BY_TOOL } from "./FractalDrawCanvas";
+import { initFractalQA } from "../utils/fractalQA";
 
 const STORAGE_KEY = "pri_artworks_v1";
 
@@ -261,6 +262,31 @@ export function MakeFractal({
   }, [classId]);
 
   // FractalDrawCanvas ref는 위에서 이미 선언됨
+
+  // ===== 프랙탈 QA 컴포넌트 파라미터 동기화 =====
+  useEffect(() => {
+    // params가 변경될 때마다 window.fractalParams 업데이트
+    if (params.type === "tree") {
+      window.fractalParams = {
+        angle: params.angle,
+        ratio: params.ratio,
+        depth: params.depth
+      };
+      // 이벤트 발생하여 QA 컴포넌트에 알림
+      window.dispatchEvent(new Event("fractalParamsChange"));
+    }
+  }, [params.angle, params.ratio, params.depth, params.type]);
+
+  // ===== 프랙탈 QA 컴포넌트 초기화 =====
+  useEffect(() => {
+    if (makeStage === "draw") {
+      // DOM이 준비될 때까지 약간의 지연
+      const timer = setTimeout(() => {
+        initFractalQA();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [makeStage]);
 
   // ===== 썸네일 생성 =====
   const makeThumbnailDataURL = (fractalCanvas, drawCanvas) => {
@@ -624,6 +650,7 @@ export function MakeFractal({
               <label className="control">
                 단계(깊이): <b>{params.depth}</b>
                 <input
+                  id="depth"
                   type="range"
                   min="0"
                   max="9"
@@ -708,6 +735,7 @@ export function MakeFractal({
                       <label>🌿 벌어짐 각도</label>
                       <span className="value">{params.angle}°</span>
                       <input
+                        id="angle"
                         type="range"
                         min="10"
                         max="45"
@@ -723,6 +751,7 @@ export function MakeFractal({
                       <label>📏 길이 비율</label>
                       <span className="value">{params.ratio.toFixed(2)}</span>
                       <input
+                        id="ratio"
                         type="range"
                         min="0.55"
                         max="0.85"
@@ -883,6 +912,9 @@ export function MakeFractal({
           <button type="button" className="ghost" onClick={() => goStage("card")}>
             다음: 제목/발표 카드 ▶
           </button>
+
+          {/* 프랙탈 QA 컴포넌트 */}
+          <div id="fractal-qa-root"></div>
         </>
       )}
 
