@@ -266,15 +266,14 @@ export function MakeFractal({
   // ===== 프랙탈 QA 컴포넌트 파라미터 동기화 =====
   useEffect(() => {
     // params가 변경될 때마다 window.fractalParams 업데이트
-    if (params.type === "tree") {
-      window.fractalParams = {
-        angle: params.angle,
-        ratio: params.ratio,
-        depth: params.depth
-      };
-      // 이벤트 발생하여 QA 컴포넌트에 알림
-      window.dispatchEvent(new Event("fractalParamsChange"));
-    }
+    window.fractalParams = {
+      fractalType: params.type, // "tree" | "sierpinski" | "koch"
+      angle: params.angle,
+      ratio: params.ratio,
+      depth: params.depth
+    };
+    // 이벤트 발생하여 QA 컴포넌트에 알림
+    window.dispatchEvent(new Event("fractalParamsChange"));
   }, [params.angle, params.ratio, params.depth, params.type]);
 
   // ===== 프랙탈 QA 컴포넌트 초기화 =====
@@ -635,10 +634,12 @@ export function MakeFractal({
               <label className="control">
                 프랙탈 종류
                 <select
+                  id="fractalType"
                   value={params.type}
                   onChange={(e) => {
                     setShowBgOverlay(false);
                     setParams((p) => ({ ...p, type: e.target.value }));
+                    window.dispatchEvent(new Event("fractalParamsChange"));
                   }}
                 >
                   <option value="tree">나무(프랙탈 나무)</option>
@@ -658,6 +659,7 @@ export function MakeFractal({
                   onChange={(e) => {
                     setShowBgOverlay(false);
                     setParams((p) => ({ ...p, depth: Number(e.target.value) }));
+                    window.dispatchEvent(new Event("fractalParamsChange"));
                   }}
                 />
               </label>
@@ -743,6 +745,7 @@ export function MakeFractal({
                         onChange={(e) => {
                           setShowBgOverlay(false);
                           setParams((p) => ({ ...p, angle: Number(e.target.value) }));
+                          window.dispatchEvent(new Event("fractalParamsChange"));
                         }}
                       />
                     </div>
@@ -760,6 +763,7 @@ export function MakeFractal({
                         onChange={(e) => {
                           setShowBgOverlay(false);
                           setParams((p) => ({ ...p, ratio: Number(e.target.value) }));
+                          window.dispatchEvent(new Event("fractalParamsChange"));
                         }}
                       />
                     </div>

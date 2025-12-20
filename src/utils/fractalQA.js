@@ -9,24 +9,23 @@ export function initFractalQA() {
 (function(){
   // ---------- 0) 공통: 파라미터 연결(React/바닐라 공용) ----------
   function readParams(){
-    // 1순위: 전역 객체로 연결 (가장 안정적)
-    if(window.fractalParams && typeof window.fractalParams === "object"){
-      const p = window.fractalParams;
-      return {
-        angle: Number(p.angle ?? 25),
-        ratio: Number(p.ratio ?? 0.72),
-        depth: Number(p.depth ?? 7)
-      };
-    }
-    // 2순위: 슬라이더 id로 연결
+    const typeEl = document.querySelector("#fractalType");
     const angleEl = document.querySelector("#angle");
     const ratioEl = document.querySelector("#ratio");
     const depthEl = document.querySelector("#depth");
+
     return {
+      fractalType: typeEl?.value ?? "tree",   // ← 여기서 종류를 읽음
       angle: Number(angleEl?.value ?? 25),
       ratio: Number(ratioEl?.value ?? 0.72),
       depth: Number(depthEl?.value ?? 7)
     };
+  }
+
+  function typeLabel(t){
+    return t === "tree" ? "프랙탈 나무"
+      : t === "sierpinski" ? "시어핀스키 삼각형"
+      : "코흐 눈송이";
   }
 
   function onParamChange(cb){
@@ -43,40 +42,97 @@ export function initFractalQA() {
   // ---------- 1) 답변 생성(핵심: 현재 파라미터 반영) ----------
   function fmt(n){ return Math.round(n*100)/100; }
 
+  function typeLabel(t){
+    return t === "tree" ? "프랙탈 나무"
+      : t === "sierpinski" ? "시어핀스키 삼각형"
+      : "코흐 눈송이";
+  }
+
   function generateAnswer(tab, qid, params, title){
+    const t = params.fractalType; // "tree" | "sierpinski" | "koch"
     const a = params.angle, r = params.ratio, d = params.depth;
 
+    // ---- 프랙탈 원리 ----
     if(tab === "principle"){
-      if(qid==="repeat"){
-        return `반복은 "같은 규칙을 계속 적용하는 것"이야.\n지금 단계가 ${d}라서, 규칙을 ${d}번 반복해 가지가 늘어나.\n→ 단계가 커질수록 반복이 많아져서 더 촘촘해져.`;
+      // 공통 질문: 반복
+      if(qid === "repeat"){
+        if(t === "tree"){
+          return `반복은 "같은 가지 규칙을 계속 적용하는 것"이야.\n지금 단계가 ${d}라서 가지가 규칙대로 ${d}번 반복되어 늘어나.\n→ 단계가 커질수록 더 촘촘해져.`;
+        }
+        if(t === "sierpinski"){
+          return `시어핀스키 삼각형의 반복은 이거야: "큰 삼각형을 4개로 나누고 가운데를 비우기"를 계속 반복!\n단계 ${d}일수록 빈 공간(구멍)과 작은 삼각형이 계속 늘어나.`;
+        }
+        // koch
+        return `코흐 눈송이의 반복은 "한 변을 3등분 → 가운데를 삼각형 봉우리로 바꾸기"를 계속 하는 거야.\n단계 ${d}일수록 변이 더 울퉁불퉁해지고 길이도 늘어 보여.`;
       }
-      if(qid==="selfsimilar"){
-        return `자기닮음은 작은 가지가 큰 가지의 축소판처럼 보이는 현상이야.\n매번 길이를 ${fmt(r)}배로 줄이고 같은 방식으로 갈라지기 때문에 부분이 전체와 닮아 보여.`;
+
+      // 공통 질문: 자기닮음
+      if(qid === "selfsimilar"){
+        if(t === "tree"){
+          return `자기닮음은 작은 가지가 큰 가지의 축소판처럼 보이는 현상이야.\n매번 길이를 ${fmt(r)}배로 줄이고 같은 방식으로 갈라지니까 부분이 전체를 닮아 보여.`;
+        }
+        if(t === "sierpinski"){
+          return `시어핀스키는 "전체 삼각형 모양이 작은 삼각형들 안에 반복해서 나타나는" 자기닮음이야.\n큰 삼각형 안에 작은 삼각형 3개가 있고, 그 안에서도 또 같은 패턴이 반복돼.`;
+        }
+        return `코흐 눈송이는 "전체의 톱니(봉우리) 모양이 작은 크기에서도 똑같이 반복되는" 자기닮음이야.\n한 번 만든 톱니를 다시 더 작은 톱니로 바꾸는 규칙이 반복돼.`;
       }
-      if(qid==="complex"){
-        return `단계를 올리면 규칙을 적용하는 횟수가 늘어나서 가지 수가 빠르게 많아져.\n그래서 겹치고 분기점이 늘어 '더 복잡'해 보이는 거야.`;
+
+      // 공통 질문: 단계 올리면 복잡
+      if(qid === "complex"){
+        if(t === "tree"){
+          return `단계를 올리면 가지 분기 횟수가 늘어나서 가지 수가 빠르게 많아져.\n그래서 겹치고 촘촘해져서 더 복잡해 보여.`;
+        }
+        if(t === "sierpinski"){
+          return `단계를 올리면 "가운데를 비우는 작업"이 더 작은 삼각형에서도 계속 일어나.\n그래서 구멍(빈 공간)이 늘고 패턴이 더 촘촘해져 복잡해 보여.`;
+        }
+        return `단계를 올리면 각 변이 더 잘게 쪼개지고, 봉우리가 더 많이 생겨.\n그래서 윤곽선이 점점 더 복잡한 눈송이처럼 보여.`;
       }
-      if(qid==="angle"){
+
+      // 나무 전용 질문: 각도/비율
+      if(qid === "angle"){
+        if(t !== "tree"){
+          return `이 질문은 '프랙탈 나무'에서 특히 중요해.\n지금 작품은 ${typeLabel(t)}이라서 각도보다는 '단계(반복)'가 모양을 더 크게 바꿔!`;
+        }
         const feel = (a<20)?"좁게 모이는 느낌":(a<45)?"자연스럽게 퍼지는 느낌":"넓게 펼쳐지는 느낌";
         return `각도(∠)는 가지가 벌어지는 방향을 정해.\n지금은 ${a}°라서 ${feel}이야.\n각도를 키우면 더 넓게, 줄이면 더 좁게 모여 보여.`;
       }
-      if(qid==="ratio"){
+
+      if(qid === "ratio"){
+        if(t !== "tree"){
+          return `이 질문은 '프랙탈 나무'에서 특히 중요해.\n지금 작품은 ${typeLabel(t)}이라서 길이 비율 대신 '단계(반복)' 관찰이 핵심이야!`;
+        }
         const feel = (r<0.62)?"빨리 짧아져 단정해짐":(r<0.75)?"균형 있게 줄어듦":"길게 유지되어 크게 뻗음";
         return `길이 비율은 다음 가지가 이전 가지의 몇 배 길이인지야.\n지금 비율 ${fmt(r)}에서는 가지가 ${feel}.\n비율이 일정해서 자기닮음이 더 뚜렷해져.`;
       }
     }
 
+    // ---- 제목/발표/공유 탭도 작품별로 살짝 보정(권장) ----
     if(tab === "share"){
       if(qid==="titlehelp"){
-        const vibe = (a>=45)?"퍼짐":(a<=18)?"집중":"균형";
-        return `제목 아이디어:\n- 규칙이 만든 ${vibe}의 나무\n- ∠${a}° · 비율 ${fmt(r)} · 단계 ${d}\n- 반복으로 자라는 프랙탈\n- 부분이 전체를 닮는 숲`;
+        if(t === "tree"){
+          const vibe = (a>=45)?"퍼짐":(a<=18)?"집중":"균형";
+          return `제목 아이디어:\n- 규칙이 만든 ${vibe}의 나무\n- ∠${a}° · 비율 ${fmt(r)} · 단계 ${d}\n- 반복으로 자라는 프랙탈\n- 부분이 전체를 닮는 숲`;
+        }
+        if(t === "sierpinski"){
+          return `제목 아이디어:\n- 구멍이 늘어나는 삼각형\n- 단계 ${d}의 시어핀스키\n- 반복으로 생긴 패턴\n- 부분이 전체를 닮는 삼각형`;
+        }
+        // koch
+        return `제목 아이디어:\n- 울퉁불퉁한 눈송이\n- 단계 ${d}의 코흐 곡선\n- 반복으로 생긴 톱니\n- 부분이 전체를 닮는 눈송이`;
       }
       if(qid==="explain"){
-        const t = title ? `「${title}」` : "내 작품";
-        return `${t}은(는) ∠${a}°로 가지가 벌어지고 길이가 매번 ${fmt(r)}배로 줄어드는 규칙을 ${d}단계 반복해 만든 프랙탈이야.\n같은 규칙이 반복되면서 작은 부분이 전체와 닮는 '자기닮음'이 나타나.`;
+        const name = typeLabel(t);
+        if(t === "tree"){
+          const tt = title ? `「${title}」` : "내 작품";
+          return `${tt}은(는) ${name}로, ∠${a}°와 비율 ${fmt(r)} 규칙을 ${d}단계 반복해 만들었어.\n같은 규칙이 반복되면서 작은 부분이 전체를 닮는 '자기닮음'이 나타나.`;
+        }
+        const tt = title ? `「${title}」` : "내 작품";
+        return `${tt}은(는) ${name}로, '같은 분할 규칙'을 ${d}단계 반복해 만든 프랙탈이야.\n반복될수록 작은 부분에서도 같은 패턴이 나타나는 '자기닮음'을 볼 수 있어.`;
       }
       if(qid==="compare"){
-        return `한 줄 정리: ∠${a}° / 비율 ${fmt(r)} / 단계 ${d} → 규칙이 반복되어 자기닮음이 생긴다.`;
+        if(t === "tree"){
+          return `한 줄 정리: ∠${a}° / 비율 ${fmt(r)} / 단계 ${d} → 규칙이 반복되어 자기닮음이 생긴다.`;
+        }
+        return `한 줄 정리: ${typeLabel(t)} / 단계(반복) ${d} → 규칙이 반복되어 자기닮음이 생긴다.`;
       }
     }
 
@@ -221,9 +277,17 @@ export function initFractalQA() {
       return "마무리 단계야 🤖\nAI를 사용할 때 '정확함'과 '책임'을 함께 생각해보자.";
     }
 
+    function hintText(p){
+      if(p.fractalType === "tree"){
+        return `현재 작품: ${typeLabel(p.fractalType)} / ∠ ${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}`;
+      }
+      // 시어핀스키, 코흐는 보통 '단계(반복)'가 핵심
+      return `현재 작품: ${typeLabel(p.fractalType)} / 단계(반복) ${p.depth}`;
+    }
+
     function syncHint(){
       const p = readParams();
-      paramHint.textContent = `현재 규칙: ∠ ${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}`;
+      paramHint.textContent = hintText(p);
     }
 
     function renderChips(){
@@ -279,7 +343,14 @@ export function initFractalQA() {
 
     root.querySelector("#copy").onclick = async ()=>{
       const p = readParams();
-      const text = lastSummary || `∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+      let text = lastSummary;
+      if(!text){
+        if(p.fractalType === "tree"){
+          text = `∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+        } else {
+          text = `${typeLabel(p.fractalType)} / 단계(반복) ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+        }
+      }
       try{ await navigator.clipboard.writeText(text); add("bot","설명을 복사했어!"); }
       catch{ add("bot","복사가 막혀있으면 드래그해서 직접 복사해줘!"); }
     };
@@ -314,9 +385,17 @@ export function initFractalQA() {
         return "마무리 단계야 🤖\nAI를 사용할 때 '정확함'과 '책임'을 함께 생각해보자.";
       }
 
+      function hintText(p){
+        if(p.fractalType === "tree"){
+          return `현재 작품: ${typeLabel(p.fractalType)} / ∠ ${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}`;
+        }
+        // 시어핀스키, 코흐는 보통 '단계(반복)'가 핵심
+        return `현재 작품: ${typeLabel(p.fractalType)} / 단계(반복) ${p.depth}`;
+      }
+
       function syncHint(){
         const p = readParams();
-        setHint(`현재 규칙: ∠ ${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}`);
+        setHint(hintText(p));
       }
 
       React.useEffect(()=>{
@@ -337,7 +416,14 @@ export function initFractalQA() {
 
       async function copy(){
         const p = readParams();
-        const text = lastSummary || `∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+        let text = lastSummary;
+        if(!text){
+          if(p.fractalType === "tree"){
+            text = `∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+          } else {
+            text = `${typeLabel(p.fractalType)} / 단계(반복) ${p.depth} 규칙으로 만든 프랙탈(자기닮음).`;
+          }
+        }
         try{ await navigator.clipboard.writeText(text); push("bot","설명을 복사했어!"); }
         catch{ push("bot","복사가 막혀있으면 드래그해서 직접 복사해줘!"); }
       }
@@ -382,7 +468,14 @@ export function initFractalQA() {
                 React.createElement("button",{className:"btn",onClick:()=>setMsgs([{role:"bot", text: welcomeText(tab)}])},"대화 지우기"),
                 React.createElement("button",{className:"btn primary",onClick:()=>{
                   const p = readParams();
-                  const s = lastSummary || `내 말 한 줄: ∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}에서 규칙이 반복되어 자기닮음이 생긴다.`;
+                  let s = lastSummary;
+                  if(!s){
+                    if(p.fractalType === "tree"){
+                      s = `내 말 한 줄: ∠${p.angle}° / 비율 ${fmt(p.ratio)} / 단계 ${p.depth}에서 규칙이 반복되어 자기닮음이 생긴다.`;
+                    } else {
+                      s = `내 말 한 줄: ${typeLabel(p.fractalType)} / 단계(반복) ${p.depth}에서 규칙이 반복되어 자기닮음이 생긴다.`;
+                    }
+                  }
                   push("user", s);
                 }},"내 말 한 줄로 정리")
               )
