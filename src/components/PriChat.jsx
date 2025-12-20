@@ -26,6 +26,9 @@ function PriChat({ workContext }) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // 입력창 숨김 여부 (특정 화면에서는 true로 설정)
+  const hideInput = true; // 해당 화면에서는 true
+
   // 인증 상태 확인
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -376,27 +379,29 @@ function PriChat({ workContext }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 입력창 */}
-        <div className="chat-input-container">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="직접 질문하기... ✨"
-            className="chat-input"
-            disabled={loading}
-          />
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={loading || !inputValue.trim()}
-            className="chat-send-btn"
-          >
-            전송
-          </button>
-        </div>
+        {/* 입력창 - 조건부 렌더링으로 숨김 */}
+        {!hideInput && (
+          <div className="chat-input-container">
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="직접 질문하기... ✨"
+              className="chat-input"
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={loading || !inputValue.trim()}
+              className="chat-send-btn"
+            >
+              전송
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 약속 체크박스 + 마무리 */}
