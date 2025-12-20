@@ -6,7 +6,7 @@ import { db, auth } from "../firebase/firebaseApp";
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { makeThumbnail } from "../utils/makeThumbnail";
 import { downsampleStrokes, getStrokesSize } from "../utils/downsampleStrokes";
-import FractalDrawCanvas from "./FractalDrawCanvas";
+import FractalDrawCanvas, { TOOLS, THICKNESS, DEFAULT_COLOR_BY_TOOL } from "./FractalDrawCanvas";
 
 const STORAGE_KEY = "pri_artworks_v1";
 
@@ -81,11 +81,12 @@ export function MakeFractal({
 
   const [title, setTitle] = useState("");
   const [studentName, setStudentName] = useState("");
-  const [tool, setTool] = useState("pen"); // 'pen' | 'highlighter' | 'eraser'
-  const [penColor, setPenColor] = useState("#111111");
-  const [penSize, setPenSize] = useState(8);
-  const [highlighterSize, setHighlighterSize] = useState(20);
-  const [eraserSize, setEraserSize] = useState(16);
+  const [tool, setTool] = useState(TOOLS.PEN);
+  const [penColor, setPenColor] = useState(DEFAULT_COLOR_BY_TOOL[TOOLS.PEN]);
+  const [highlighterColor, setHighlighterColor] = useState(DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER]);
+  const [coloredPencilColor, setColoredPencilColor] = useState(DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL]);
+  const [thicknessMode, setThicknessMode] = useState(THICKNESS.NORMAL);
+  const [detail, setDetail] = useState(50); // 0~100
   const [drawLock, setDrawLock] = useState(true);   // 🔒 그리기 모드(스크롤/줌 잠금)
   const [allowMouse, setAllowMouse] = useState(true); // ✅ 기본 true(개발 편함)
   const [penOnly, setPenOnly] = useState(true);     // true면 펜만, false면 마우스도 허용
@@ -743,23 +744,35 @@ export function MakeFractal({
             fractalImageUrl={bgSnapshot}
             initialTool={tool}
             penColor={penColor}
-            highlighterColor={penColor}
-            penWidth={penSize}
-            highlighterWidth={highlighterSize}
-            eraserWidth={eraserSize}
+            highlighterColor={highlighterColor}
+            coloredPencilColor={coloredPencilColor}
+            thicknessMode={thicknessMode}
+            detail={detail}
             onToolChange={setTool}
             showToolbar={false}
           />
 
           {/* 도구 */}
           <div className="toolRow">
-            <button type="button" className={`tool ${tool==="pen"?"on":""}`} onClick={() => setTool("pen")}>
+            <button type="button" className={`tool ${tool===TOOLS.PEN?"on":""}`} onClick={() => {
+              setTool(TOOLS.PEN);
+              setPenColor(DEFAULT_COLOR_BY_TOOL[TOOLS.PEN]);
+            }}>
               ✏️ 펜
             </button>
-            <button type="button" className={`tool ${tool==="highlighter"?"on":""}`} onClick={() => setTool("highlighter")}>
+            <button type="button" className={`tool ${tool===TOOLS.HIGHLIGHTER?"on":""}`} onClick={() => {
+              setTool(TOOLS.HIGHLIGHTER);
+              setHighlighterColor(DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER]);
+            }}>
               🖍️ 형광펜
             </button>
-            <button type="button" className={`tool ${tool==="eraser"?"on":""}`} onClick={() => setTool("eraser")}>
+            <button type="button" className={`tool ${tool===TOOLS.COLORED_PENCIL?"on":""}`} onClick={() => {
+              setTool(TOOLS.COLORED_PENCIL);
+              setColoredPencilColor(DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL]);
+            }}>
+              ✏️ 색연필
+            </button>
+            <button type="button" className={`tool ${tool===TOOLS.ERASER?"on":""}`} onClick={() => setTool(TOOLS.ERASER)}>
               🧽 지우개
             </button>
 
@@ -788,112 +801,55 @@ export function MakeFractal({
           {/* 색상 및 굵기 조절 */}
           <div className="row">
             <label className="mini">
-              색 <input type="color" value={penColor} onChange={(e) => setPenColor(e.target.value)} />
+              색{" "}
+              <input
+                type="color"
+                value={
+                  tool === TOOLS.PEN ? penColor :
+                  tool === TOOLS.HIGHLIGHTER ? highlighterColor :
+                  tool === TOOLS.COLORED_PENCIL ? coloredPencilColor :
+                  "#000000"
+                }
+                onChange={(e) => {
+                  if (tool === TOOLS.PEN) setPenColor(e.target.value);
+                  else if (tool === TOOLS.HIGHLIGHTER) setHighlighterColor(e.target.value);
+                  else if (tool === TOOLS.COLORED_PENCIL) setColoredPencilColor(e.target.value);
+                }}
+              />
             </label>
 
-            {tool === "pen" ? (
-              <>
-                <button
-                  type="button"
-                  className={penSize <= 4 ? "tool chip on" : "tool chip"}
-                  onClick={() => setPenSize(4)}
-                >
-                  얇게
-                </button>
-                <button
-                  type="button"
-                  className={penSize > 4 && penSize <= 10 ? "tool chip on" : "tool chip"}
-                  onClick={() => setPenSize(8)}
-                >
-                  보통
-                </button>
-                <button
-                  type="button"
-                  className={penSize > 10 ? "tool chip on" : "tool chip"}
-                  onClick={() => setPenSize(14)}
-                >
-                  굵게
-                </button>
-                <label className="mini">
-                  <span className="toolLabel">세밀</span>
-                  <input
-                    type="range"
-                    min="2"
-                    max="18"
-                    value={penSize}
-                    onChange={(e) => setPenSize(Number(e.target.value))}
-                  />
-                </label>
-              </>
-            ) : tool === "highlighter" ? (
-              <>
-                <button
-                  type="button"
-                  className={highlighterSize <= 16 ? "tool chip on" : "tool chip"}
-                  onClick={() => setHighlighterSize(16)}
-                >
-                  얇게
-                </button>
-                <button
-                  type="button"
-                  className={highlighterSize > 16 && highlighterSize <= 24 ? "tool chip on" : "tool chip"}
-                  onClick={() => setHighlighterSize(20)}
-                >
-                  보통
-                </button>
-                <button
-                  type="button"
-                  className={highlighterSize > 24 ? "tool chip on" : "tool chip"}
-                  onClick={() => setHighlighterSize(32)}
-                >
-                  굵게
-                </button>
-                <label className="mini">
-                  <span className="toolLabel">세밀</span>
-                  <input
-                    type="range"
-                    min="12"
-                    max="40"
-                    value={highlighterSize}
-                    onChange={(e) => setHighlighterSize(Number(e.target.value))}
-                  />
-                </label>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className={eraserSize <= 12 ? "tool chip on" : "tool chip"}
-                  onClick={() => setEraserSize(12)}
-                >
-                  작게
-                </button>
-                <button
-                  type="button"
-                  className={eraserSize > 12 && eraserSize <= 20 ? "tool chip on" : "tool chip"}
-                  onClick={() => setEraserSize(16)}
-                >
-                  보통
-                </button>
-                <button
-                  type="button"
-                  className={eraserSize > 20 ? "tool chip on" : "tool chip"}
-                  onClick={() => setEraserSize(24)}
-                >
-                  크게
-                </button>
-                <label className="mini">
-                  <span className="toolLabel">세밀</span>
-                  <input
-                    type="range"
-                    min="8"
-                    max="32"
-                    value={eraserSize}
-                    onChange={(e) => setEraserSize(Number(e.target.value))}
-                  />
-                </label>
-              </>
-            )}
+            {/* 굵기 버튼 (모든 도구 공통) */}
+            <button
+              type="button"
+              className={thicknessMode === THICKNESS.THIN ? "tool chip on" : "tool chip"}
+              onClick={() => setThicknessMode(THICKNESS.THIN)}
+            >
+              얇게
+            </button>
+            <button
+              type="button"
+              className={thicknessMode === THICKNESS.NORMAL ? "tool chip on" : "tool chip"}
+              onClick={() => setThicknessMode(THICKNESS.NORMAL)}
+            >
+              보통
+            </button>
+            <button
+              type="button"
+              className={thicknessMode === THICKNESS.THICK ? "tool chip on" : "tool chip"}
+              onClick={() => setThicknessMode(THICKNESS.THICK)}
+            >
+              굵게
+            </button>
+            <label className="mini">
+              <span className="toolLabel">세밀</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={detail}
+                onChange={(e) => setDetail(Number(e.target.value))}
+              />
+            </label>
           </div>
 
           {/* 작품 이름 + 저장 */}

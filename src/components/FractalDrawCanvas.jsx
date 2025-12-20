@@ -12,15 +12,39 @@ import "./FractalDrawCanvas.css";
  * 3) touch-action: none + pointer capture 로 드래그 튐 방지
  * 4) 기존 잘못된 이벤트 리스너는 이 컴포넌트로 통일 (중복 제거)
  */
+
+// 도구 상수
+export const TOOLS = {
+  PEN: "pen",
+  HIGHLIGHTER: "highlighter",
+  COLORED_PENCIL: "colored_pencil",
+  ERASER: "eraser",
+};
+
+// 굵기 모드 상수
+export const THICKNESS = {
+  THIN: "thin",
+  NORMAL: "normal",
+  THICK: "thick",
+};
+
+// 도구별 기본색
+export const DEFAULT_COLOR_BY_TOOL = {
+  [TOOLS.PEN]: "#1E40FF",
+  [TOOLS.HIGHLIGHTER]: "#FFE866",
+  [TOOLS.COLORED_PENCIL]: "#D9480F",
+  [TOOLS.ERASER]: "#000000",
+};
+
 const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
   fractalImageUrl, // 프랙탈을 이미지로 받은 경우(권장). 없으면 아래 drawFractal로 처리
   drawFractal,     // (선택) (ctx, w, h) => void 로 프랙탈 직접 그릴 때
-  initialTool = "pen", // "pen" | "highlighter" | "eraser"
-  penColor = "#111827",
-  highlighterColor = "rgba(255, 200, 0, 0.35)",
-  penWidth = 3,
-  highlighterWidth = 14,
-  eraserWidth = 20,
+  initialTool = TOOLS.PEN,
+  penColor = DEFAULT_COLOR_BY_TOOL[TOOLS.PEN],
+  highlighterColor = DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER],
+  coloredPencilColor = DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL],
+  thicknessMode = THICKNESS.NORMAL, // "thin" | "normal" | "thick"
+  detail = 50, // 0~100 (세밀 슬라이더)
   onToolChange,    // (선택) tool 변경 시 호출
   showToolbar = true, // (선택) 툴바 표시 여부
 }, ref) {
@@ -76,10 +100,11 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     const drawCtx = setupCanvas(drawRef.current);
 
     // 드로잉 레이어는 "투명" 유지(배경 안 덮기)
-    if (drawCtx) {
-      drawCtx.lineCap = "round";
-      drawCtx.lineJoin = "round";
-    }
+    // ⭐ ctx 설정은 applyBrush에서만 관리하므로 여기서는 제거
+    // if (drawCtx) {
+    //   drawCtx.lineCap = "round";
+    //   drawCtx.lineJoin = "round";
+    // }
 
     if (!bgCtx) return;
     bgCtx.clearRect(0, 0, size.w, size.h);
@@ -102,38 +127,113 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     }
   }, [size.w, size.h, fractalImageUrl, drawFractal]);
 
-  // 현재 툴 스타일 적용
-  const applyToolStyle = (ctx) => {
+  // 굵기/세밀을 실제 lineWidth로 변환 (기존 로직 유지하되 사용하지 않음)
+  // const computeBaseWidth = (thicknessMode, detail) => {
+  //   // thicknessMode에 따라 기본값을 확 벌려서 "차이"가 나게 함
+  //   const modeBase =
+  //     thicknessMode === THICKNESS.THIN ? 2 :
+  //     thicknessMode === THICKNESS.NORMAL ? 5 :
+  //     10; // THICK
+  //   // detail 슬라이더(0~100)를 0.6~1.8로 매핑 (세밀: 얇아지고/조절 가능)
+  //   const detailScale = 0.6 + (detail / 100) * 1.2;
+  //   // 최종 baseWidth
+  //   return modeBase * detailScale;
+  // };
+
+  // 도구별 브러시 프리셋 (고정값 - 요구사항 반영)
+  const BRUSH_PRESETS = {
+    [TOOLS.PEN]: {
+      color: "#2F5BFF",     // 파란색
+      width: 3,             // 얇게
+      alpha: 1.0,
+      lineCap: "round",
+      lineJoin: "round",
+      compositeOperation: "source-over",
+    },
+    [TOOLS.HIGHLIGHTER]: {
+      color: "#FFD400",     // 노란색
+      width: 18,            // 굵게
+      alpha: 0.35,          // 형광 느낌(투명)
+      lineCap: "round",
+      lineJoin: "round",
+      compositeOperation: "multiply", // 겹치면 진해지는 느낌
+    },
+    [TOOLS.COLORED_PENCIL]: {
+      color: "#E53935",     // 빨간색
+      width: 6,             // 중간
+      alpha: 0.75,          // 색연필 느낌(약간 투명)
+      lineCap: "round",
+      lineJoin: "round",
+      compositeOperation: "source-over",
+    },
+    [TOOLS.ERASER]: {
+      color: "#000000",     // 지우개는 색상 무의미
+      width: 20,
+      alpha: 1.0,
+      lineCap: "round",
+      lineJoin: "round",
+      compositeOperation: "destination-out",
+    },
+  };
+
+  /**
+   * ctx 스타일 적용은 여기서만!
+   * 기존 코드의 ctx.strokeStyle/lineWidth/globalAlpha/lineCap 중복 설정은 삭제/주석 처리하고
+   * draw 시작할 때마다 applyBrush(ctx)만 호출하도록 통일.
+   */
+  const applyBrush = (ctx) => {
     if (!ctx) return;
     
-    // 공통 설정
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
+    const preset = BRUSH_PRESETS[tool] || BRUSH_PRESETS[TOOLS.PEN];
     
-    if (tool === "pen") {
-      // 펜: 선명/불투명/얇고 또렷 (잉크펜 느낌)
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = penColor;
-      ctx.lineWidth = penWidth;
-      ctx.globalAlpha = 1.0;
+    // 모든 ctx 설정을 한 곳에서만 관리
+    ctx.strokeStyle = preset.color;
+    ctx.lineWidth = preset.width;
+    ctx.globalAlpha = preset.alpha;
+    ctx.lineCap = preset.lineCap;
+    ctx.lineJoin = preset.lineJoin;
+    ctx.globalCompositeOperation = preset.compositeOperation;
+    
+    // shadow는 형광펜에만 적용
+    if (tool === TOOLS.HIGHLIGHTER) {
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = preset.color;
+    } else {
       ctx.shadowBlur = 0;
       ctx.shadowColor = "transparent";
-    } else if (tool === "highlighter") {
-      // 형광펜: 넓고 반투명 + 겹치면 진해지게 (칠한 느낌)
-      ctx.globalCompositeOperation = "multiply";
-      ctx.strokeStyle = highlighterColor;
-      ctx.lineWidth = highlighterWidth;
-      ctx.globalAlpha = 0.35; // 반투명 (0.25 ~ 0.45 범위)
-      ctx.shadowBlur = 6; // 부드러운 가장자리
-      ctx.shadowColor = highlighterColor; // 색이 살짝 번지는 느낌
-    } else if (tool === "eraser") {
-      // 지우개: 투명으로 파내기
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.strokeStyle = "rgba(0,0,0,1)";
-      ctx.lineWidth = eraserWidth;
-      ctx.globalAlpha = 1.0;
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = "transparent";
+    }
+  };
+
+  // 노이즈(지터) 함수
+  const jitter = (p, amount) => {
+    return {
+      x: p.x + (Math.random() - 0.5) * amount,
+      y: p.y + (Math.random() - 0.5) * amount,
+    };
+  };
+
+  // 실제 선 그리기: 펜/형광펜은 1번, 색연필은 오버드로우로 질감
+  const strokeSegment = (ctx, tool, from, to) => {
+    if (tool !== TOOLS.COLORED_PENCIL) {
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.stroke();
+      return;
+    }
+
+    // 색연필: 같은 구간을 살짝씩 흔들어 여러 번 그려서 "종이결" 느낌
+    const passes = 3;
+    const amt = Math.max(0.6, ctx.lineWidth * 0.12);
+
+    for (let i = 0; i < passes; i++) {
+      const f = jitter(from, amt);
+      const t = jitter(to, amt);
+
+      ctx.beginPath();
+      ctx.moveTo(f.x, f.y);
+      ctx.lineTo(t.x, t.y);
+      ctx.stroke();
     }
   };
 
@@ -164,6 +264,15 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     ctx.putImageData(snapshot, 0, 0);
   };
 
+  // 포인터 move에서 스타일 적용 + 그리기
+  const onPointerMoveDraw = (ctx, prevPoint, nextPoint) => {
+    // ⭐ draw마다 반드시 스타일 적용 (단일 함수로 통일)
+    applyBrush(ctx);
+
+    // 실제 stroke
+    strokeSegment(ctx, tool, prevPoint, nextPoint);
+  };
+
   const onPointerDown = (e) => {
     // 스크롤/드래그 방지
     e.preventDefault();
@@ -181,23 +290,12 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     }
 
     const ctx = c.getContext("2d");
-    applyToolStyle(ctx);
-
     const { x, y } = getPoint(e);
     last.current = { x, y };
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
     setIsDrawing(true);
-  };
 
-  // 형광펜에만 미세한 노이즈(흔들림) 추가 (칠한 느낌)
-  const jitterPoint = (p, amount = 0.4) => {
-    if (tool !== "highlighter") return p;
-    return {
-      x: p.x + (Math.random() - 0.5) * amount,
-      y: p.y + (Math.random() - 0.5) * amount,
-    };
+    // ⭐ draw 시작 시점에 applyBrush 호출
+    applyBrush(ctx);
   };
 
   const onPointerMove = (e) => {
@@ -208,25 +306,31 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     e.preventDefault();
 
     const ctx = c.getContext("2d");
-    applyToolStyle(ctx);
+    const next = getPoint(e);
+    const prev = last.current;
 
-    let { x, y } = getPoint(e);
-    
-    // 형광펜에만 노이즈 적용
-    if (tool === "highlighter") {
-      const jittered = jitterPoint({ x, y }, 0.8);
-      x = jittered.x;
-      y = jittered.y;
+    if (!prev || (prev.x === next.x && prev.y === next.y)) {
+      last.current = next;
+      return;
     }
-    
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    last.current = { x, y };
+
+    // ⭐ 스타일 적용 + 그리기 (단일 함수로 통일, 색상/thicknessMode/detail props 제거)
+    onPointerMoveDraw(ctx, prev, next);
+
+    last.current = next;
   };
 
   const stopDrawing = (e) => {
     if (!isDrawing) return;
     setIsDrawing(false);
+    
+    // globalAlpha를 원복 (다른 렌더에 영향 방지)
+    const c = drawRef.current;
+    if (c) {
+      const ctx = c.getContext("2d");
+      ctx.globalAlpha = 1.0;
+    }
+    
     try {
       drawRef.current?.releasePointerCapture?.(e.pointerId);
     } catch (err) {
@@ -279,6 +383,11 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
     ctx.clearRect(0, 0, c.width, c.height);
   };
 
+  // 도구 선택 시 기본색도 변경
+  const selectTool = (nextTool) => {
+    setTool(nextTool);
+  };
+
   // 외부에서 undo/redo/clear 및 canvas ref 호출 가능하도록 ref 노출
   React.useImperativeHandle(ref, () => ({
     undo,
@@ -293,9 +402,10 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
       {/* (선택) 상단 툴바: 기존 UI에 연결해도 됨 */}
       {showToolbar && (
         <div className="fd-toolbar">
-          <button className={`fd-btn ${tool === "pen" ? "active" : ""}`} onClick={() => setTool("pen")}>✏️ 펜</button>
-          <button className={`fd-btn ${tool === "highlighter" ? "active" : ""}`} onClick={() => setTool("highlighter")}>🖍️ 형광펜</button>
-          <button className={`fd-btn ${tool === "eraser" ? "active" : ""}`} onClick={() => setTool("eraser")}>🧽 지우개</button>
+          <button className={`fd-btn ${tool === TOOLS.PEN ? "active" : ""}`} onClick={() => selectTool(TOOLS.PEN)}>✏️ 펜</button>
+          <button className={`fd-btn ${tool === TOOLS.HIGHLIGHTER ? "active" : ""}`} onClick={() => selectTool(TOOLS.HIGHLIGHTER)}>🖍️ 형광펜</button>
+          <button className={`fd-btn ${tool === TOOLS.COLORED_PENCIL ? "active" : ""}`} onClick={() => selectTool(TOOLS.COLORED_PENCIL)}>✏️ 색연필</button>
+          <button className={`fd-btn ${tool === TOOLS.ERASER ? "active" : ""}`} onClick={() => selectTool(TOOLS.ERASER)}>🧽 지우개</button>
           <span className="fd-spacer" />
           <button className="fd-btn" onClick={undo}>↩️ 되돌리기</button>
           <button className="fd-btn" onClick={redo}>↪️ 다시하기</button>

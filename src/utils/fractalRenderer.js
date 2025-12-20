@@ -183,6 +183,89 @@ function drawTreeAutoFit(ctx, w, h, params) {
   ctx.restore();
 }
 
+/**
+ * 캔버스에 "이미 그려진" 콘텐츠를 bbox 기준으로 중앙 정렬한다.
+ * - 기존 draw 로직 수정 없이, draw 이후에 호출하면 됨
+ * - 투명 배경 기준(알파>0 픽셀)을 스캔하여 bbox 계산
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {HTMLCanvasElement} canvas
+ * @param {{ step?: number, alphaThreshold?: number, padding?: number }} options
+ */
+function centerCanvasContent(ctx, canvas, options = {}) {
+  const w = canvas.width;
+  const h = canvas.height;
+
+  const step = Math.max(1, options.step ?? 2); // 성능용: 1이면 정밀, 2~4면 빠름
+  const alphaThreshold = options.alphaThreshold ?? 1; // 0~255
+  const padding = options.padding ?? 0; // bbox에 여백 추가(픽셀)
+
+  // 현재 캔버스 픽셀 읽기
+  let imageData;
+  try {
+    imageData = ctx.getImageData(0, 0, w, h);
+  } catch (e) {
+    // CORS 등으로 getImageData가 막히는 환경이면 작동 불가
+    return;
+  }
+
+  const data = imageData.data;
+
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+
+  // 알파 채널 스캔(다운샘플링 step)
+  for (let y = 0; y < h; y += step) {
+    const row = y * w * 4;
+    for (let x = 0; x < w; x += step) {
+      const idx = row + x * 4;
+      const a = data[idx + 3];
+      if (a >= alphaThreshold) {
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  // 그림이 전혀 없으면 종료
+  if (maxX < 0 || maxY < 0) return;
+
+  // padding 적용 + 클램프
+  minX = Math.max(0, minX - padding);
+  minY = Math.max(0, minY - padding);
+  maxX = Math.min(w - 1, maxX + padding);
+  maxY = Math.min(h - 1, maxY + padding);
+
+  // bbox 중심
+  const boxCx = (minX + maxX) / 2;
+  const boxCy = (minY + maxY) / 2;
+
+  // 캔버스 중심
+  const targetCx = w / 2;
+  const targetCy = h / 2;
+
+  // 이동량(정수 반올림)
+  const dx = Math.round(targetCx - boxCx);
+  const dy = Math.round(targetCy - boxCy);
+
+  // 이미 거의 중앙이면 스킵(미세 이동 방지)
+  if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) return;
+
+  // 임시 캔버스에 현재 내용 복사 후, 원본에 이동하여 다시 그리기
+  const tmp = document.createElement("canvas");
+  tmp.width = w;
+  tmp.height = h;
+  const tctx = tmp.getContext("2d");
+
+  // 원본 내용을 통째로 복사
+  tctx.putImageData(imageData, 0, 0);
+
+  // 원본 비우고 이동해서 다시 그리기
+  ctx.clearRect(0, 0, w, h);
+  ctx.drawImage(tmp, dx, dy);
+}
+
 export function renderFractal(ctx, w, h, params) {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = params.bg || "#ffffff";
@@ -210,5 +293,10 @@ export function renderFractal(ctx, w, h, params) {
     ctx.moveTo(margin, y);
     kochLine(ctx, margin, y, w - margin, y, params.depth);
     ctx.stroke();
+  }
+
+  // 프랙탈 그리기 완료 후 중앙 정렬
+  if (ctx.canvas) {
+    centerCanvasContent(ctx, ctx.canvas, { step: 2, padding: 4 });
   }
 }
