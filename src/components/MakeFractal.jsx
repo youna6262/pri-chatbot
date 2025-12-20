@@ -675,31 +675,38 @@ export function MakeFractal({
               
               {/* 하단 컨트롤: 선색/배경/각도/비율/다음 버튼 */}
               <div className="controlsUnderPreview">
-                <label className="control row">
-                  선 색
-                  <input
-                    type="color"
-                    value={params.color}
-                    onChange={(e) => {
-                      setShowBgOverlay(false);
-                      setParams((p) => ({ ...p, color: e.target.value }));
-                    }}
-                  />
-                  배경
-                  <input
-                    type="color"
-                    value={params.bg}
-                    onChange={(e) => {
-                      setShowBgOverlay(false);
-                      setParams((p) => ({ ...p, bg: e.target.value }));
-                    }}
-                  />
-                </label>
+                {/* 선색 + 면색 */}
+                <div className="color-row">
+                  <div className="color-item">
+                    <label>✏️ 선색</label>
+                    <input
+                      type="color"
+                      value={params.color}
+                      onChange={(e) => {
+                        setShowBgOverlay(false);
+                        setParams((p) => ({ ...p, color: e.target.value }));
+                      }}
+                    />
+                  </div>
+                  <div className="color-item">
+                    <label>🎨 면색</label>
+                    <input
+                      type="color"
+                      value={params.bg}
+                      onChange={(e) => {
+                        setShowBgOverlay(false);
+                        setParams((p) => ({ ...p, bg: e.target.value }));
+                      }}
+                    />
+                  </div>
+                </div>
 
+                {/* 슬라이더 두 개 한 줄 */}
                 {params.type === "tree" && (
-                  <>
-                    <label className="control">
-                      가지 벌어짐: <b>{params.angle}°</b>
+                  <div className="slider-row-double">
+                    <div className="slider-item">
+                      <label>🌿 벌어짐 각도</label>
+                      <span className="value">{params.angle}°</span>
                       <input
                         type="range"
                         min="10"
@@ -710,10 +717,11 @@ export function MakeFractal({
                           setParams((p) => ({ ...p, angle: Number(e.target.value) }));
                         }}
                       />
-                    </label>
+                    </div>
 
-                    <label className="control">
-                      가지 길이 비율: <b>{params.ratio.toFixed(2)}</b>
+                    <div className="slider-item">
+                      <label>📏 길이 비율</label>
+                      <span className="value">{params.ratio.toFixed(2)}</span>
                       <input
                         type="range"
                         min="0.55"
@@ -725,8 +733,8 @@ export function MakeFractal({
                           setParams((p) => ({ ...p, ratio: Number(e.target.value) }));
                         }}
                       />
-                    </label>
-                  </>
+                    </div>
+                  </div>
                 )}
 
                 <button type="button" className="primary" onClick={goDraw}>

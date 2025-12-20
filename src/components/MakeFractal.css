@@ -2161,3 +2161,62 @@
   display: block;
   object-fit: contain;
 }
+
+/* ============================================
+   컨트롤 레이아웃 - 선색/면색, 슬라이더 배치
+   ============================================ */
+
+/* 선색 + 면색 */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.color-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-item label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+/* 슬라이더 2개를 한 줄에 */
+.slider-row-double {
+  margin-top: 16px;              /* 색상 줄 아래 */
+  display: flex;
+  align-items: center;
+  gap: 32px;                     /* 두 슬라이더 사이 */
+}
+
+/* 슬라이더 하나의 내부 구성 */
+.slider-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;                       /* 두 슬라이더가 균등 분할 */
+}
+
+.slider-item label {
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.slider-item .value {
+  width: 48px;                   /* 값 흔들림 방지 */
+  font-weight: 700;
+  color: #667eea;
+  font-size: 17px;
+  text-align: right;
+}
+
+.slider-item input[type="range"] {
+  flex: 1;
+}
