@@ -91,20 +91,20 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas({
   useEffect(() => {
     const dpr = window.devicePixelRatio || 1;
 
-    const setupCanvas = (canvas) => {
+    const setupCanvas = (canvas, willRead = false) => {
       if (!canvas || !size.w || !size.h) return null;
       canvas.width = Math.floor(size.w * dpr);
       canvas.height = Math.floor(size.h * dpr);
       canvas.style.width = `${size.w}px`;
       canvas.style.height = `${size.h}px`;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d", willRead ? { willReadFrequently: true } : undefined);
       // 좌표를 CSS px 기준으로 쓰기 위해 transform 고정
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return ctx;
     };
 
-    const bgCtx = setupCanvas(bgRef.current);
-    setupCanvas(drawRef.current);
+    const bgCtx = setupCanvas(bgRef.current, false);     // 배경: 읽기 거의 없음
+    setupCanvas(drawRef.current, true); // 드로잉: undo 때문에 read 많음
 
     if (!bgCtx) return;
     bgCtx.clearRect(0, 0, size.w, size.h);
