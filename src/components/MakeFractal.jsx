@@ -938,7 +938,7 @@ export function MakeFractal({
             </div>
           </main>
 
-          {/* 우측: 프리 질문 버튼 패널 */}
+          {/* 우측: 프리 질문 버튼 패널 (채팅 위에 고정) */}
           <aside className="prompts">
             <div id="fractal-qa-prompts-root"></div>
           </aside>

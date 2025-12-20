@@ -2235,7 +2235,7 @@
 
   grid-template-areas:
     "tools canvas prompts"
-    "tools chat  prompts";
+    "tools chat  .";
 }
 
 .step2Grid .tools {
@@ -2248,10 +2248,16 @@
 
 .step2Grid .prompts {
   grid-area: prompts;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .step2Grid .chat {
   grid-area: chat;
+  padding-bottom: 20px; /* 하단 배너가 덮지 않도록 여백 확보 */
 }
 
 /* 작은 화면은 세로로 */

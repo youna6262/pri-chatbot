@@ -158,7 +158,7 @@ export function initFractalQAPrompts() {
     const STYLE = `
       <style>
         :root{ --stroke:#ffd2dc; --stroke2:#ffc1d0; --pink:#ff7aa6; --pink2:#ff9fbe; --muted:#6a5d62; --shadow:0 10px 30px rgba(255,122,166,.18); }
-        .qaPromptsCard{ margin-top:18px; background:#ffffffcc; border:1px solid var(--stroke); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo","Noto Sans KR"; }
+        .qaPromptsCard{ margin-top:0; background:#ffffffcc; border:1px solid var(--stroke); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo","Noto Sans KR"; }
         .qaPromptsHead{ padding:18px 18px 12px; text-align:center; border-bottom:1px solid rgba(255,210,220,.7); background:linear-gradient(180deg,#fff9fb 0%, #fff6f8 100%); }
         .qaPromptsHead h1{ margin:0; font-size:22px; font-weight:950; letter-spacing:-.8px; color:#ff6a9a; }
         .qaPromptsHead .sub{ margin-top:6px; font-size:12px; color:var(--muted); font-weight:600; }
@@ -379,7 +379,7 @@ export function initFractalQAChat() {
       <style>
         :root{ --stroke:#ffd2dc; --stroke2:#ffc1d0; --pink:#ff7aa6; --pink2:#ff9fbe; --muted:#6a5d62; --shadow:0 10px 30px rgba(255,122,166,.18); }
         .qaChatCard{ background:#ffffffcc; border:1px solid var(--stroke); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; font-family: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo","Noto Sans KR"; height: 100%; display: flex; flex-direction: column; }
-        .qaChatBox{ flex: 1; padding: 14px; overflow-y: auto; min-height: 0; }
+        .qaChatBox{ flex: 1; padding: 14px 14px 20px; overflow-y: auto; min-height: 0; }
         .qaChatMsg{ display:flex; gap:10px; margin:10px 0; align-items:flex-start; }
         .qaChatMsg.user{ justify-content:flex-end; }
         .qaChatAvatar{ width:34px; height:34px; border-radius:999px; display:grid; place-items:center; font-size:18px; border:1px solid var(--stroke2); background:#fff; }
