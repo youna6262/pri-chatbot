@@ -659,64 +659,6 @@ export function MakeFractal({
                   <b>PRI</b>는 "패턴 레시피 번호"예요. 같은 PRI면 같은 바탕이 다시 나와요!
                 </div>
               </label>
-
-              <label className="control row">
-                선 색
-                <input
-                  type="color"
-                  value={params.color}
-                  onChange={(e) => {
-                    setShowBgOverlay(false);
-                    setParams((p) => ({ ...p, color: e.target.value }));
-                  }}
-                />
-                배경
-                <input
-                  type="color"
-                  value={params.bg}
-                  onChange={(e) => {
-                    setShowBgOverlay(false);
-                    setParams((p) => ({ ...p, bg: e.target.value }));
-                  }}
-                />
-              </label>
-
-              {params.type === "tree" && (
-                <>
-                  <label className="control">
-                    가지 벌어짐: <b>{params.angle}°</b>
-                    <input
-                      type="range"
-                      min="10"
-                      max="45"
-                      value={params.angle}
-                      onChange={(e) => {
-                        setShowBgOverlay(false);
-                        setParams((p) => ({ ...p, angle: Number(e.target.value) }));
-                      }}
-                    />
-                  </label>
-
-                  <label className="control">
-                    가지 길이 비율: <b>{params.ratio.toFixed(2)}</b>
-                    <input
-                      type="range"
-                      min="0.55"
-                      max="0.85"
-                      step="0.01"
-                      value={params.ratio}
-                      onChange={(e) => {
-                        setShowBgOverlay(false);
-                        setParams((p) => ({ ...p, ratio: Number(e.target.value) }));
-                      }}
-                    />
-                  </label>
-                </>
-              )}
-
-              <button type="button" className="primary" onClick={goDraw}>
-                다음: 그림 그리기 ▶
-              </button>
             </div>
           </div>
 
@@ -728,7 +670,68 @@ export function MakeFractal({
                 <canvas ref={fractalCanvasRef} className="fractalCanvas" />
               </div>
               <div className="hintSmall">
-                왼쪽 설정을 바꾸면 오른쪽 바탕이 바로 바뀌어요!
+                위의 설정을 바꾸면 아래 바탕이 바로 바뀌어요
+              </div>
+              
+              {/* 하단 컨트롤: 선색/배경/각도/비율/다음 버튼 */}
+              <div className="controlsUnderPreview">
+                <label className="control row">
+                  선 색
+                  <input
+                    type="color"
+                    value={params.color}
+                    onChange={(e) => {
+                      setShowBgOverlay(false);
+                      setParams((p) => ({ ...p, color: e.target.value }));
+                    }}
+                  />
+                  배경
+                  <input
+                    type="color"
+                    value={params.bg}
+                    onChange={(e) => {
+                      setShowBgOverlay(false);
+                      setParams((p) => ({ ...p, bg: e.target.value }));
+                    }}
+                  />
+                </label>
+
+                {params.type === "tree" && (
+                  <>
+                    <label className="control">
+                      가지 벌어짐: <b>{params.angle}°</b>
+                      <input
+                        type="range"
+                        min="10"
+                        max="45"
+                        value={params.angle}
+                        onChange={(e) => {
+                          setShowBgOverlay(false);
+                          setParams((p) => ({ ...p, angle: Number(e.target.value) }));
+                        }}
+                      />
+                    </label>
+
+                    <label className="control">
+                      가지 길이 비율: <b>{params.ratio.toFixed(2)}</b>
+                      <input
+                        type="range"
+                        min="0.55"
+                        max="0.85"
+                        step="0.01"
+                        value={params.ratio}
+                        onChange={(e) => {
+                          setShowBgOverlay(false);
+                          setParams((p) => ({ ...p, ratio: Number(e.target.value) }));
+                        }}
+                      />
+                    </label>
+                  </>
+                )}
+
+                <button type="button" className="primary" onClick={goDraw}>
+                  다음: 그림 그리기 ▶
+                </button>
               </div>
             </div>
           </div>

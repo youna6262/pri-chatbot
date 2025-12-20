@@ -1433,6 +1433,16 @@
   font-weight: 600;
 }
 
+/* 하단 컨트롤 영역 (미리보기 아래) */
+.controlsUnderPreview {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(102, 126, 234, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .canvasBox {
   border-radius: 20px;
   border: 3px solid rgba(102, 126, 234, 0.3);
@@ -1703,7 +1713,8 @@
 /* ✅ ① 미리보기 캔버스 박스 높이 보장 (0이면 redraw가 티 안남) */
 .canvasBox.big{
   width:100%;
-  height: clamp(260px, 45vh, 520px);
+  min-height: 300px;
+  max-height: 50vh;
   overflow:hidden;
   border-radius:16px;
   background:#fff;
