@@ -38,6 +38,25 @@ export const DEFAULT_COLOR_BY_TOOL = {
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+// ✅ 캔버스 리사이즈 함수 (DPR 고려)
+function resizeCanvasToDisplaySize(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+
+  const displayWidth = Math.round(rect.width * dpr);
+  const displayHeight = Math.round(rect.height * dpr);
+
+  if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 좌표계를 CSS 픽셀 기준으로 맞춤
+    return true; // 크기 바뀜
+  }
+  return false;
+}
+
 const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
   {
     fractalImageUrl,
@@ -87,6 +106,53 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     return () => ro.disconnect();
   }, []);
 
+  // ✅ 레이아웃 변경 시 캔버스 리사이즈 (DPR 고려)
+  // 주의: size.w, size.h가 변경되면 위의 useEffect에서 자동으로 처리되므로,
+  // 여기서는 윈도우 리사이즈나 다른 레이아웃 변경 시에만 추가로 처리
+  useEffect(() => {
+    const onLayoutChange = () => {
+      requestAnimationFrame(() => {
+        // wrapRef의 크기가 변경되면 ResizeObserver가 size를 업데이트하고,
+        // 그에 따라 위의 useEffect가 캔버스를 리사이즈함
+        // 여기서는 단순히 강제로 리사이즈만 수행
+        const bgCanvas = bgRef.current;
+        const drawCanvas = drawRef.current;
+        
+        if (bgCanvas) {
+          resizeCanvasToDisplaySize(bgCanvas);
+          // 배경 이미지가 있으면 다시 그리기 (위의 useEffect에서 처리되지만, 확실히 하기 위해)
+          if (fractalImageUrl) {
+            const ctx = bgCanvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            const rect = bgCanvas.getBoundingClientRect();
+            const displayW = rect.width;
+            const displayH = rect.height;
+            
+            ctx.clearRect(0, 0, displayW, displayH);
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, displayW, displayH);
+            };
+            img.src = fractalImageUrl;
+          }
+        }
+        
+        if (drawCanvas) {
+          resizeCanvasToDisplaySize(drawCanvas);
+          // TODO: 기존 그림을 유지해야 한다면 redraw 호출
+          // 현재는 history가 있으면 복원할 수 있지만, 여기서는 단순히 리사이즈만 처리
+        }
+      });
+    };
+
+    // 윈도우 리사이즈 이벤트
+    window.addEventListener("resize", onLayoutChange);
+
+    return () => {
+      window.removeEventListener("resize", onLayoutChange);
+    };
+  }, [fractalImageUrl]);
+
   // ✅ 고정 브러시 프리셋(요구사항 그대로)
   const BRUSH_PRESETS = {
     [TOOLS.PEN]: {
@@ -135,43 +201,38 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     ctx.shadowColor = "transparent";
   };
 
-  // DPR 세팅 + 배경 그리기
+  // DPR 세팅 + 배경 그리기 (resizeCanvasToDisplaySize 사용)
   useEffect(() => {
+    const bgCanvas = bgRef.current;
+    const drawCanvas = drawRef.current;
+    
+    if (!bgCanvas || !size.w || !size.h) return;
+
+    // ✅ resizeCanvasToDisplaySize 사용
+    const bgChanged = resizeCanvasToDisplaySize(bgCanvas);
+    if (drawCanvas) {
+      resizeCanvasToDisplaySize(drawCanvas);
+    }
+
+    const bgCtx = bgCanvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
+    const displayW = size.w;
+    const displayH = size.h;
 
-    const setupCanvas = (canvas, willRead = false) => {
-      if (!canvas || !size.w || !size.h) return null;
-      canvas.width = Math.floor(size.w * dpr);
-      canvas.height = Math.floor(size.h * dpr);
-      canvas.style.width = `${size.w}px`;
-      canvas.style.height = `${size.h}px`;
-
-      const ctx = canvas.getContext(
-        "2d",
-        willRead ? { willReadFrequently: true } : undefined
-      );
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      return ctx;
-    };
-
-    const bgCtx = setupCanvas(bgRef.current, false);
-    setupCanvas(drawRef.current, true);
-
-    if (!bgCtx) return;
-    bgCtx.clearRect(0, 0, size.w, size.h);
+    bgCtx.clearRect(0, 0, displayW, displayH);
 
     if (fractalImageUrl) {
       const img = new Image();
       img.onload = () => {
-        bgCtx.clearRect(0, 0, size.w, size.h);
-        bgCtx.drawImage(img, 0, 0, size.w, size.h);
+        bgCtx.clearRect(0, 0, displayW, displayH);
+        bgCtx.drawImage(img, 0, 0, displayW, displayH);
       };
       img.src = fractalImageUrl;
       return;
     }
 
     if (typeof drawFractal === "function") {
-      drawFractal(bgCtx, size.w, size.h);
+      drawFractal(bgCtx, displayW, displayH);
     }
   }, [size.w, size.h, fractalImageUrl, drawFractal]);
 

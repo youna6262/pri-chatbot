@@ -9,16 +9,28 @@ export function initFractalQA() {
 (function(){
   // ---------- 0) 공통: 파라미터 연결(React/바닐라 공용) ----------
   function readParams(){
+    // ✅ 1순위: MakeFractal에서 매번 동기화해 주는 전역 값
+    const wp = (typeof window !== "undefined") ? window.fractalParams : null;
+    if (wp && typeof wp === "object") {
+      return {
+        fractalType: wp.fractalType ?? "tree",   // "tree" | "sierpinski" | "koch"
+        angle: Number(wp.angle ?? 25),
+        ratio: Number(wp.ratio ?? 0.72),
+        depth: Number(wp.depth ?? 7),
+      };
+    }
+
+    // ✅ 2순위: bg 단계에서만 존재하는 DOM 값(있을 때만)
     const typeEl = document.querySelector("#fractalType");
     const angleEl = document.querySelector("#angle");
     const ratioEl = document.querySelector("#ratio");
     const depthEl = document.querySelector("#depth");
 
     return {
-      fractalType: typeEl?.value ?? "tree",   // ← 여기서 종류를 읽음
+      fractalType: typeEl?.value ?? "tree",
       angle: Number(angleEl?.value ?? 25),
       ratio: Number(ratioEl?.value ?? 0.72),
-      depth: Number(depthEl?.value ?? 7)
+      depth: Number(depthEl?.value ?? 7),
     };
   }
 
@@ -29,24 +41,18 @@ export function initFractalQA() {
   }
 
   function onParamChange(cb){
-    // 전역 객체를 쓰는 경우엔, 프로젝트에서 window.dispatchEvent(new Event("fractalParamsChange")) 호출하면 됨
     window.addEventListener("fractalParamsChange", cb);
 
-    // 슬라이더가 있으면 input 이벤트로 감지
-    ["#angle","#ratio","#depth"].forEach(sel=>{
+    ["#fractalType", "#angle", "#ratio", "#depth"].forEach(sel=>{
       const el = document.querySelector(sel);
-      if(el) el.addEventListener("input", cb);
+      if(!el) return;
+      el.addEventListener("input", cb);
+      el.addEventListener("change", cb);
     });
   }
 
   // ---------- 1) 답변 생성(핵심: 현재 파라미터 반영) ----------
   function fmt(n){ return Math.round(n*100)/100; }
-
-  function typeLabel(t){
-    return t === "tree" ? "프랙탈 나무"
-      : t === "sierpinski" ? "시어핀스키 삼각형"
-      : "코흐 눈송이";
-  }
 
   function generateAnswer(tab, qid, params, title){
     const t = params.fractalType; // "tree" | "sierpinski" | "koch"

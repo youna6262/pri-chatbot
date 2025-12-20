@@ -45,7 +45,7 @@
 .fd-wrap {
   position: relative;
   width: 100%;
-  height: clamp(400px, 60vh, 600px);
+  height: 100%; /* 부모의 aspect-ratio를 따르도록 */
   background: white;
   border-radius: 18px;
   overflow: hidden;

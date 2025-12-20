@@ -2220,3 +2220,205 @@
 .slider-item input[type="range"] {
   flex: 1;
 }
+
+/* ============================================
+   ② 그림 그리기 단계 - 새로운 2단 레이아웃
+   ============================================ */
+
+/* 바깥 2단: 좌(도구/설정 패널), 우(컨텐츠 패널) */
+.page {
+  display: flex;
+  gap: 24px;
+  min-height: 0;
+}
+
+.leftPanel {
+  width: 340px;
+  flex: 0 0 auto;
+}
+
+.rightPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 우측 패널 내부 2단: 왼쪽(캔버스), 오른쪽(프리 Q&A) */
+.drawLayout {
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+  height: 100%;
+}
+
+.canvasCard {
+  flex: 3;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatCard {
+  flex: 1;
+  min-width: 320px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 캔버스가 들어가는 박스: 비율 고정 */
+.canvasBox {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.1);
+}
+
+/* 캔버스를 박스에 꽉 채워 보이게 */
+.canvasBox canvas,
+.canvasBox .fd-root,
+.canvasBox .fd-wrap {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvasBox .fd-wrap {
+  border-radius: 16px;
+}
+
+/* 좌측 패널 내부 스타일 조정 */
+.leftPanel .panel {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.leftPanel .toolRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.leftPanel .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.leftPanel .nameRow {
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.leftPanel .nameRow .titleInput {
+  width: 100%;
+}
+
+.leftPanel .nameRow button.primary {
+  width: 100%;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+  .page {
+    flex-direction: column;
+  }
+
+  .leftPanel {
+    width: 100%;
+  }
+
+  .drawLayout {
+    flex-direction: column;
+  }
+
+  .chatCard {
+    min-width: unset;
+    max-width: unset;
+  }
+}
+
+/* ============================================
+   finish 화면 스타일
+   ============================================ */
+
+.finishWrap {
+  padding: 16px;
+}
+
+.finishGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.finishPreview {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.finishImg {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+.finishMeta {
+  margin-top: 10px;
+}
+
+.finishTitle {
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.finishSub {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.finishText {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.finishText .label {
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.speechBox {
+  border: 1px solid #f0dbe2;
+  background: #fff7fa;
+  border-radius: 12px;
+  padding: 12px;
+  white-space: pre-line;
+  min-height: 120px;
+}
+
+.finishBtns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .finishGrid {
+    grid-template-columns: 1fr;
+  }
+}

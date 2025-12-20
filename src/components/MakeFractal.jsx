@@ -586,6 +586,7 @@ export function MakeFractal({
           {makeStage === "bg" && "① 바탕 만들기"}
           {makeStage === "draw" && "② 그림 그리기"}
           {makeStage === "card" && "③ 제목/발표 카드"}
+          {makeStage === "finish" && "④ 마무리/공유"}
         </h2>
         <div className="makeHeaderRight">
           <label className="importBtn">
@@ -619,6 +620,14 @@ export function MakeFractal({
 
           <button type="button" className={makeStage === "card" ? "stage on" : "stage"} onClick={() => goStage("card")}>
             ③ 제목/발표 카드
+          </button>
+
+          <button
+            type="button"
+            className={makeStage === "finish" ? "stage on" : "stage"}
+            onClick={() => goStage("finish")}
+          >
+            ④ 마무리/공유
           </button>
         </div>
       )}
@@ -781,145 +790,163 @@ export function MakeFractal({
 
       {/* ③ 그림 그리기 */}
       {makeStage === "draw" && (
-        <>
-          {/* ✅ 새로운 FractalDrawCanvas 컴포넌트 사용 */}
-          <FractalDrawCanvas
-            ref={fractalDrawCanvasRef}
-            fractalImageUrl={bgSnapshot}
-            initialTool={tool}
-            penColor={penColor}
-            highlighterColor={highlighterColor}
-            coloredPencilColor={coloredPencilColor}
-            thicknessMode={thicknessMode}
-            detail={detail}
-            onToolChange={setTool}
-            showToolbar={false}
-          />
+        <div className="page">
+          {/* 좌측: 도구/설정 패널 */}
+          <aside className="leftPanel">
+            <div className="panel">
+              <div className="panelTitle">도구/설정</div>
 
-          {/* 도구 */}
-          <div className="toolRow">
-            <button type="button" className={`tool ${tool===TOOLS.PEN?"on":""}`} onClick={() => {
-              setTool(TOOLS.PEN);
-              setPenColor(DEFAULT_COLOR_BY_TOOL[TOOLS.PEN]);
-            }}>
-              ✏️ 펜
-            </button>
-            <button type="button" className={`tool ${tool===TOOLS.HIGHLIGHTER?"on":""}`} onClick={() => {
-              setTool(TOOLS.HIGHLIGHTER);
-              setHighlighterColor(DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER]);
-            }}>
-              🖍️ 형광펜
-            </button>
-            <button type="button" className={`tool ${tool===TOOLS.COLORED_PENCIL?"on":""}`} onClick={() => {
-              setTool(TOOLS.COLORED_PENCIL);
-              setColoredPencilColor(DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL]);
-            }}>
-              ✏️ 색연필
-            </button>
-            <button type="button" className={`tool ${tool===TOOLS.ERASER?"on":""}`} onClick={() => setTool(TOOLS.ERASER)}>
-              🧽 지우개
-            </button>
+              {/* 도구 */}
+              <div className="toolRow">
+                <button type="button" className={`tool ${tool===TOOLS.PEN?"on":""}`} onClick={() => {
+                  setTool(TOOLS.PEN);
+                  setPenColor(DEFAULT_COLOR_BY_TOOL[TOOLS.PEN]);
+                }}>
+                  ✏️ 펜
+                </button>
+                <button type="button" className={`tool ${tool===TOOLS.HIGHLIGHTER?"on":""}`} onClick={() => {
+                  setTool(TOOLS.HIGHLIGHTER);
+                  setHighlighterColor(DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER]);
+                }}>
+                  🖍️ 형광펜
+                </button>
+                <button type="button" className={`tool ${tool===TOOLS.COLORED_PENCIL?"on":""}`} onClick={() => {
+                  setTool(TOOLS.COLORED_PENCIL);
+                  setColoredPencilColor(DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL]);
+                }}>
+                  ✏️ 색연필
+                </button>
+                <button type="button" className={`tool ${tool===TOOLS.ERASER?"on":""}`} onClick={() => setTool(TOOLS.ERASER)}>
+                  🧽 지우개
+                </button>
 
-            <button type="button" className="tool undoTool" onClick={() => fractalDrawCanvasRef.current?.undo?.()}>↩ 되돌리기</button>
-            <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.redo?.()}>↪ 다시하기</button>
-            <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.clearAll?.()}>🗑 전체 지우기</button>
+                <button type="button" className="tool undoTool" onClick={() => fractalDrawCanvasRef.current?.undo?.()}>↩ 되돌리기</button>
+                <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.redo?.()}>↪ 다시하기</button>
+                <button type="button" className="tool" onClick={() => fractalDrawCanvasRef.current?.clearAll?.()}>🗑 전체 지우기</button>
 
-            <button
-              type="button"
-              className={`tool ${drawLock ? "on" : ""}`}
-              onClick={() => setDrawLock(v => !v)}
-              title="그릴 때는 잠금(🔒), 보기모드는 잠금 해제(🔓)"
-            >
-              {drawLock ? "🔒 그리기" : "🔓 보기"}
-            </button>
+                <button
+                  type="button"
+                  className={`tool ${drawLock ? "on" : ""}`}
+                  onClick={() => setDrawLock(v => !v)}
+                  title="그릴 때는 잠금(🔒), 보기모드는 잠금 해제(🔓)"
+                >
+                  {drawLock ? "🔒 그리기" : "🔓 보기"}
+                </button>
 
-            <button
-              type="button"
-              className={allowMouse ? "tool on" : "tool"}
-              onClick={() => setAllowMouse(v => !v)}
-            >
-              🖱️ 마우스도
-            </button>
-          </div>
+                <button
+                  type="button"
+                  className={allowMouse ? "tool on" : "tool"}
+                  onClick={() => setAllowMouse(v => !v)}
+                >
+                  🖱️ 마우스도
+                </button>
+              </div>
 
-          {/* 색상 및 굵기 조절 */}
-          <div className="row">
-            <label className="mini">
-              색{" "}
-              <input
-                type="color"
-                value={
-                  tool === TOOLS.PEN ? penColor :
-                  tool === TOOLS.HIGHLIGHTER ? highlighterColor :
-                  tool === TOOLS.COLORED_PENCIL ? coloredPencilColor :
-                  "#000000"
-                }
-                onChange={(e) => {
-                  if (tool === TOOLS.PEN) setPenColor(e.target.value);
-                  else if (tool === TOOLS.HIGHLIGHTER) setHighlighterColor(e.target.value);
-                  else if (tool === TOOLS.COLORED_PENCIL) setColoredPencilColor(e.target.value);
-                }}
-              />
-            </label>
+              {/* 색상 및 굵기 조절 */}
+              <div className="row">
+                <label className="mini">
+                  색{" "}
+                  <input
+                    type="color"
+                    value={
+                      tool === TOOLS.PEN ? penColor :
+                      tool === TOOLS.HIGHLIGHTER ? highlighterColor :
+                      tool === TOOLS.COLORED_PENCIL ? coloredPencilColor :
+                      "#000000"
+                    }
+                    onChange={(e) => {
+                      if (tool === TOOLS.PEN) setPenColor(e.target.value);
+                      else if (tool === TOOLS.HIGHLIGHTER) setHighlighterColor(e.target.value);
+                      else if (tool === TOOLS.COLORED_PENCIL) setColoredPencilColor(e.target.value);
+                    }}
+                  />
+                </label>
 
-            {/* 굵기 버튼 (모든 도구 공통) */}
-            <button
-              type="button"
-              className={thicknessMode === THICKNESS.THIN ? "tool chip on" : "tool chip"}
-              onClick={() => setThicknessMode(THICKNESS.THIN)}
-            >
-              얇게
-            </button>
-            <button
-              type="button"
-              className={thicknessMode === THICKNESS.NORMAL ? "tool chip on" : "tool chip"}
-              onClick={() => setThicknessMode(THICKNESS.NORMAL)}
-            >
-              보통
-            </button>
-            <button
-              type="button"
-              className={thicknessMode === THICKNESS.THICK ? "tool chip on" : "tool chip"}
-              onClick={() => setThicknessMode(THICKNESS.THICK)}
-            >
-              굵게
-            </button>
-            <label className="mini">
-              <span className="toolLabel">세밀</span>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={detail}
-                onChange={(e) => setDetail(Number(e.target.value))}
-              />
-            </label>
-          </div>
+                {/* 굵기 버튼 (모든 도구 공통) */}
+                <button
+                  type="button"
+                  className={thicknessMode === THICKNESS.THIN ? "tool chip on" : "tool chip"}
+                  onClick={() => setThicknessMode(THICKNESS.THIN)}
+                >
+                  얇게
+                </button>
+                <button
+                  type="button"
+                  className={thicknessMode === THICKNESS.NORMAL ? "tool chip on" : "tool chip"}
+                  onClick={() => setThicknessMode(THICKNESS.NORMAL)}
+                >
+                  보통
+                </button>
+                <button
+                  type="button"
+                  className={thicknessMode === THICKNESS.THICK ? "tool chip on" : "tool chip"}
+                  onClick={() => setThicknessMode(THICKNESS.THICK)}
+                >
+                  굵게
+                </button>
+                <label className="mini">
+                  <span className="toolLabel">세밀</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={detail}
+                    onChange={(e) => setDetail(Number(e.target.value))}
+                  />
+                </label>
+              </div>
 
-          {/* 작품 이름 + 저장 */}
-          <div className="nameRow">
-            <input
-              className="titleInput"
-              placeholder="작품 이름 (예: 겨울 숲)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <input
-              className="titleInput"
-              placeholder="이름/별명(선택)"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-            />
-            <button type="button" className="primary" onClick={saveWork}>작품 저장</button>
-          </div>
+              {/* 작품 이름 + 저장 */}
+              <div className="nameRow">
+                <input
+                  className="titleInput"
+                  placeholder="작품 이름 (예: 겨울 숲)"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <input
+                  className="titleInput"
+                  placeholder="이름/별명(선택)"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                />
+                <button type="button" className="primary" onClick={saveWork}>작품 저장</button>
+              </div>
 
-          <button type="button" className="ghost" onClick={() => goStage("card")}>
-            다음: 제목/발표 카드 ▶
-          </button>
+              <button type="button" className="ghost" onClick={() => goStage("card")}>
+                다음: 제목/발표 카드 ▶
+              </button>
+            </div>
+          </aside>
 
-          {/* 프랙탈 QA 컴포넌트 */}
-          <div id="fractal-qa-root"></div>
-        </>
+          {/* 우측: 컨텐츠 패널 (캔버스 + QA) */}
+          <main className="rightPanel">
+            <div className="drawLayout">
+              {/* 왼쪽: 캔버스 */}
+              <section className="canvasCard">
+                <div className="canvasBox">
+                  <FractalDrawCanvas
+                    ref={fractalDrawCanvasRef}
+                    fractalImageUrl={bgSnapshot}
+                    initialTool={tool}
+                    penColor={penColor}
+                    highlighterColor={highlighterColor}
+                    coloredPencilColor={coloredPencilColor}
+                    thicknessMode={thicknessMode}
+                    detail={detail}
+                    onToolChange={setTool}
+                    showToolbar={false}
+                  />
+                </div>
+              </section>
+
+              {/* 오른쪽: 프리 Q&A */}
+              <section className="chatCard">
+                <div id="fractal-qa-root"></div>
+              </section>
+            </div>
+          </main>
+        </div>
       )}
 
       {/* ④ 제목/발표 카드 */}
@@ -1023,6 +1050,92 @@ export function MakeFractal({
               </>
             )}
           </section>
+        </div>
+      )}
+
+      {/* ⑤ 마무리/공유(채팅 이동) */}
+      {makeStage === "finish" && (
+        <div className="finishWrap">
+          <div className="panel">
+            <div className="panelTitle">④ 마무리: 공유 & 챗봇으로 정리</div>
+
+            {!selectedWork ? (
+              <div className="empty big">
+                먼저 ③에서 작품을 선택하고 제목/발표 내용을 저장해 주세요 🙂
+              </div>
+            ) : (
+              <>
+                <div className="finishGrid">
+                  <div className="finishPreview">
+                    <img
+                      src={selectedWork.thumbnail || "/images/placeholder.png"}
+                      alt=""
+                      className="finishImg"
+                    />
+                    <div className="finishMeta">
+                      <div className="finishTitle">
+                        {workTitle || selectedWork.title || "제목 없음"}
+                      </div>
+                      <div className="finishSub">
+                        {nickname || selectedWork.nickname ? `이름/별명: ${nickname || selectedWork.nickname}` : "이름/별명: (없음)"}
+                      </div>
+                      <div className="finishSub">
+                        프랙탈: {selectedWork.fractalParams?.type} · PRI {selectedWork.fractalParams?.pri} · 단계 {selectedWork.fractalParams?.depth}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="finishText">
+                    <div className="label">발표 내용</div>
+                    <div className="speechBox">
+                      {presentationDraft?.trim()
+                        ? presentationDraft
+                        : "③에서 발표 내용을 작성하면 여기서 한 번 더 확인할 수 있어요."}
+                    </div>
+
+                    <div className="finishBtns">
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => goStage("card")}
+                      >
+                        ◀ 발표카드 수정
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn"
+                        onClick={exportPNG}
+                      >
+                        PNG 저장
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn primary"
+                        onClick={() => {
+                          // ✅ 부모가 채팅에서 작품 컨텍스트를 쓰면 여기서도 한 번 더 확실히 넘겨주기
+                          onWorkContextChange?.({
+                            title: workTitle || selectedWork.title,
+                            pri: selectedWork.fractalParams?.pri,
+                            type: selectedWork.fractalParams?.type,
+                            depth: selectedWork.fractalParams?.depth,
+                          });
+                          onNavigateToChat?.();
+                        }}
+                      >
+                        🤖 챗봇으로 마무리(원리+제목+AI윤리) ▶
+                      </button>
+                    </div>
+
+                    <div className="muted small" style={{ marginTop: 10 }}>
+                      챗봇에서: (1) 프랙탈 원리 정리 → (2) 제목 다듬기 → (3) AI 윤리 한 줄 마무리 순서로 진행하면 좋아요.
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
