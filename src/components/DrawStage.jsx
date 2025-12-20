@@ -66,14 +66,10 @@ export default function DrawStage({
     };
 
     const bgCtx = setup(bgRef.current);
-    const drawCtx = setup(drawRef.current);
+    setup(drawRef.current);
 
-    // (선택) 드로잉 기본 세팅
-    if (drawCtx) {
-      drawCtx.lineCap = "round";
-      drawCtx.lineJoin = "round";
-      drawCtx.lineWidth = 3;
-    }
+    // ✅ drawCanvas ctx 설정은 FractalDrawCanvas의 applyBrush에서만 관리
+    // 중복 설정 제거 (다른 컴포넌트에서도 drawCanvas ctx를 건드리지 않도록)
 
     // 배경 프랙탈 그리기: dataUrl(이미지)로 예시
     if (bgCtx && fractalDataUrl) {
