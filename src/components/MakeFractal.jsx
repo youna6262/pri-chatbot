@@ -125,6 +125,7 @@ export function MakeFractal({
 
   // Firestore에 작품 저장하는 헬퍼 함수
   async function saveWorkToFirestore(workData) {
+    // workData: { title, nickname, fractalParams, strokes, thumbnail ... }
     if (!auth.currentUser) {
       throw new Error("로그인이 필요합니다.");
     }
@@ -150,6 +151,7 @@ export function MakeFractal({
 
     const sorted = [...filtered].sort((a, b) => {
       if (sortMode === "title") return (a.title || "").localeCompare(b.title || "");
+      // recent
       const at = new Date(a.createdAt || 0).getTime();
       const bt = new Date(b.createdAt || 0).getTime();
       return bt - at;
@@ -166,6 +168,7 @@ export function MakeFractal({
 
     const sorted = [...filtered].sort((a, b) => {
       if (gallerySort === "title") return (a.title || "").localeCompare(b.title || "");
+      // recent
       const createdAtA = a.createdAt?.toDate?.() || a.createdAt || new Date(0);
       const createdAtB = b.createdAt?.toDate?.() || b.createdAt || new Date(0);
       const at = createdAtA instanceof Date ? createdAtA.getTime() : new Date(createdAtA).getTime();
@@ -176,16 +179,20 @@ export function MakeFractal({
     return sorted;
   }, [galleryWorks, galleryQuery, gallerySort]);
 
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
+
   const goDraw = () => {
     const c = fractalCanvasRef.current;
-    if (c) setBgSnapshot(c.toDataURL("image/png"));
+    if (c) setBgSnapshot(c.toDataURL("image/png")); // ✅ 바탕 캡처
     goStage("draw");
   };
+
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
 
   const renderBg = useCallback(() => {
     const c = fractalCanvasRef.current;
     if (!c) return;
-    if (makeStage !== "bg") return;
+    if (makeStage !== "bg") return; // ✅ 바탕 만들기 단계에서만 렌더링
 
     const { width, height } = resizeCanvas(c);
     const ctx = c.getContext("2d");
@@ -194,6 +201,8 @@ export function MakeFractal({
 
   useEffect(() => {
     if (makeStage === "bg") {
+      // ✅ 바탕 만들기 단계일 때만 렌더링
+      // 캔버스가 DOM에 마운트될 때까지 약간의 지연
       const timer = setTimeout(() => {
         requestAnimationFrame(() => {
           const c = fractalCanvasRef.current;
@@ -224,6 +233,8 @@ export function MakeFractal({
     return () => window.removeEventListener("resize", onResize);
   }, [makeStage, params]);
 
+  // 드로잉은 FractalDrawCanvas 컴포넌트에서 처리
+
   // ===== Firestore 갤러리 작품 목록 불러오기 =====
   useEffect(() => {
     if (!classId) return;
@@ -249,10 +260,13 @@ export function MakeFractal({
     return () => unsub();
   }, [classId]);
 
+  // FractalDrawCanvas ref는 위에서 이미 선언됨
+
   // ===== 썸네일 생성 =====
   const makeThumbnailDataURL = (fractalCanvas, drawCanvas) => {
     if (!fractalCanvas && !drawCanvas) return "";
     
+    // bgSnapshot이 있으면 이미지로 사용
     if (bgSnapshot) {
       const img = new Image();
       img.src = bgSnapshot;
@@ -269,7 +283,9 @@ export function MakeFractal({
 
     const credits = buildCredits({ title: t, params, studentName });
     
+    // ✅ 사용자가 작성 중인 draft가 있으면 덮어쓰기
     if (presentationDraft) {
+      // presentationDraft가 문자열이면 oneSentence에 저장
       if (typeof credits.presentation === 'object') {
         credits.presentation.oneSentence = presentationDraft;
       } else {
@@ -277,6 +293,7 @@ export function MakeFractal({
       }
     }
 
+    // 썸네일 생성
     let thumbnail = "";
     try {
       const bgCanvas = fractalDrawCanvasRef.current?.bgRef?.current || null;
@@ -295,22 +312,26 @@ export function MakeFractal({
       console.warn("썸네일 생성 실패:", err);
     }
 
+    // strokes는 FractalDrawCanvas에서 직접 가져올 수 없으므로 빈 배열로 처리
+    // (향후 FractalDrawCanvas에서 strokes를 export하는 기능 추가 필요)
     let processedStrokes = [];
     const strokesSize = getStrokesSize(processedStrokes);
 
-    if (strokesSize > 800000) {
-      console.warn("⚠️ 스트로크 데이터가 큽니다:", strokesSize, "bytes");
+    // 1MiB (1048576 bytes) 제한 경고
+    if (strokesSize > 800000) { // 약 800KB
+      console.warn("⚠️ 스트로크 데이터가 큽니다:", strokesSize, "bytes (1MiB 제한: 1048576 bytes)");
       if (strokesSize > 1048576) {
-        alert("⚠️ 경고: 스트로크 데이터가 너무 큽니다.");
+        alert("⚠️ 경고: 스트로크 데이터가 너무 큽니다. 일부 점이 제거되었습니다.");
       }
     }
 
+    // stroke/points 상한 확인
     if (processedStrokes.length > 500) {
-      console.warn("⚠️ 스트로크 수가 많습니다:", processedStrokes.length);
+      console.warn("⚠️ 스트로크 수가 많습니다:", processedStrokes.length, "(최대 500개)");
     }
     const totalPoints = processedStrokes.reduce((sum, s) => sum + (s.points?.length || 0), 0);
     if (totalPoints > 100000) {
-      console.warn("⚠️ 전체 점 수가 많습니다:", totalPoints);
+      console.warn("⚠️ 전체 점 수가 많습니다:", totalPoints, "(권장: 100,000개 이하)");
     }
 
     try {
@@ -319,16 +340,17 @@ export function MakeFractal({
         nickname: nickname || "",
         fractalParams: params,
         strokes: processedStrokes,
-        thumbnail: thumbnail || "",
-        credits: credits,
+        thumbnail: thumbnail || "", // 있으면
+        credits: credits, // credits도 함께 저장
       });
 
+      // 로컬 저장도 유지 (기존 기능)
       const work = {
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID(), // 임시 ID (로컬 저장용)
         createdAt: new Date().toISOString(),
         title: t,
         fractalParams: params,
-        strokes: processedStrokes,
+        strokes: processedStrokes, // 빈 배열 (FractalDrawCanvas는 이미지 기반)
         credits,
         thumbnail,
       };
@@ -337,6 +359,7 @@ export function MakeFractal({
       setWorks(next);
       saveWorks(next);
       
+      // ✅ workContext 업데이트
       if (onWorkContextChange) {
         onWorkContextChange({
           title: t,
@@ -348,7 +371,7 @@ export function MakeFractal({
       
       setGalleryError("");
       alert("✅ 갤러리에 저장 완료!");
-      goStage("card");
+      goStage("card");  // ✅ 저장→발표카드 흐름
     } catch (e) {
       console.error(e);
       setGalleryError(e?.message || "작품 저장에 실패했습니다.");
@@ -357,13 +380,22 @@ export function MakeFractal({
   };
 
   const loadWork = (work) => {
+    // 1) 바탕 파라미터 세팅 → 프랙탈 캔버스가 다시 그려짐
     setParams(work.fractalParams);
+
+    // 2) 그림은 FractalDrawCanvas에서 이미지로 처리되므로 strokes는 사용하지 않음
+    // strokesRef.current = work.strokes || [];
+    // redrawAll(); // FractalDrawCanvas가 자동으로 처리
+
+    // 3) 제목/별명 UI도 채우고 싶으면
     setTitle(work.title || "");
     setStudentName(work.nickname || "");
     setWorkTitle(work.title || "");
     setNickname(work.nickname || "");
 
+    // 4) 발표 내용 불러오기
     if (work.credits?.presentation) {
+      // presentation이 객체면 oneSentence나 문자열로 변환, 문자열이면 그대로
       if (typeof work.credits.presentation === 'string') {
         setPresentationDraft(work.credits.presentation);
       } else if (work.credits.presentation.oneSentence) {
@@ -375,6 +407,7 @@ export function MakeFractal({
       setPresentationDraft("");
     }
 
+    // 5) 선택된 작품 설정
     setSelectedWork(work);
     setSelectedWorkId(work.id);
   };
@@ -385,10 +418,13 @@ export function MakeFractal({
     const t = (workTitle || "").trim() || "이름 없는 작품";
     const n = (nickname || "").trim() || "";
 
+    // strokes는 FractalDrawCanvas에서 직접 가져올 수 없으므로 빈 배열로 처리
     let processedStrokes = [];
 
+    // credits 생성 (발표 내용 포함)
     const credits = buildCredits({ title: t, params: selectedWork.fractalParams || params, studentName: n });
     if (presentationDraft) {
+      // presentationDraft가 문자열이면 oneSentence에 저장
       if (typeof credits.presentation === 'object') {
         credits.presentation.oneSentence = presentationDraft;
       } else {
@@ -403,9 +439,10 @@ export function MakeFractal({
         fractalParams: selectedWork.fractalParams || params,
         strokes: processedStrokes,
         thumbnail: selectedWork.thumbnail || "",
-        credits: credits,
+        credits: credits, // credits도 함께 저장
       });
 
+      // 로컬 저장도 업데이트
       const updatedWork = {
         ...selectedWork,
         title: t,
@@ -426,11 +463,12 @@ export function MakeFractal({
     }
   };
 
+  // ✅ 작품 선택 시 자동으로 '그림 그리기' 단계로 이동
   const handleSelectWork = (w) => {
-    loadWork(w);
-    setSelectedWorkId(w.id);
-    goStage("draw");
-    setShowBgOverlay(false);
+    loadWork(w);                 // ✅ 기존 불러오기 함수
+    setSelectedWorkId(w.id);    // ✅ 선택된 작품 ID 저장
+    goStage("draw"); // ✅ 바로 '그림 그리기'로 이동(보이게)
+    setShowBgOverlay(false);     // ✅ 오버레이 숨김
   };
 
   const exportPNG = async () => {
@@ -456,6 +494,7 @@ export function MakeFractal({
 
     const octx = out.getContext("2d");
     
+    // 배경 그리기
     if (bgCanvas) {
       octx.drawImage(bgCanvas, 0, 0);
     } else if (bgSnapshot) {
@@ -469,6 +508,7 @@ export function MakeFractal({
       return;
     }
     
+    // 그림 그리기
     if (drawCanvas) octx.drawImage(drawCanvas, 0, 0);
 
     const finishExport = () => {
@@ -510,7 +550,7 @@ export function MakeFractal({
     const next = [fixed, ...works];
     setWorks(next);
     saveWorks(next);
-    if (next[0]) handleSelectWork(next[0]);
+    if (next[0]) handleSelectWork(next[0]); // ✅ 가져오자마자 첫 작품을 캔버스에 표시
     alert("가져오기 완료!");
   };
 
@@ -541,22 +581,24 @@ export function MakeFractal({
         </div>
       </div>
 
-      {/* 단계 간 이동 스테퍼 */}
+      {/* 단계 간 이동 스테퍼 - hideStepper가 true면 숨김 */}
       {!hideStepper && (
         <div className="makeStepper">
           <button type="button" className={makeStage === "bg" ? "stage on" : "stage"} onClick={() => goStage("bg")}>
             ① 바탕 만들기
           </button>
+
           <button type="button" className={makeStage === "draw" ? "stage on" : "stage"} onClick={() => goStage("draw")}>
             ② 그림 그리기
           </button>
+
           <button type="button" className={makeStage === "card" ? "stage on" : "stage"} onClick={() => goStage("card")}>
             ③ 제목/발표 카드
           </button>
         </div>
       )}
 
-      {/* ① 바탕 만들기 */}
+      {/* ② 바탕 만들기 */}
       {makeStage === "bg" && (
         <div className="makeTwoCol">
           {/* 왼쪽: 설정 패널 */}
@@ -624,38 +666,40 @@ export function MakeFractal({
           <div className="makeRight">
             <div className="panel">
               <div className="panelTitle">미리보기(바탕)</div>
+              <div className="canvasBox big">
+                <canvas ref={fractalCanvasRef} className="fractalCanvas" />
+              </div>
+              <div className="hintSmall">
+                위의 설정을 바꾸면 아래 바탕이 바로 바뀌어요
+              </div>
               
-              {/* ✅ 수정: 컨트롤을 미리보기 타이틀과 캔버스 사이로 이동 */}
-              <div className="controlsBetweenPreview">
-                <div className="controlsRowInline">
-                  <label className="controlColorLabel">
-                    <span>선 색</span>
-                    <input
-                      type="color"
-                      value={params.color}
-                      onChange={(e) => {
-                        setShowBgOverlay(false);
-                        setParams((p) => ({ ...p, color: e.target.value }));
-                      }}
-                    />
-                  </label>
-                  <label className="controlColorLabel">
-                    <span>배경</span>
-                    <input
-                      type="color"
-                      value={params.bg}
-                      onChange={(e) => {
-                        setShowBgOverlay(false);
-                        setParams((p) => ({ ...p, bg: e.target.value }));
-                      }}
-                    />
-                  </label>
-                </div>
+              {/* 하단 컨트롤: 선색/배경/각도/비율/다음 버튼 */}
+              <div className="controlsUnderPreview">
+                <label className="control row">
+                  선 색
+                  <input
+                    type="color"
+                    value={params.color}
+                    onChange={(e) => {
+                      setShowBgOverlay(false);
+                      setParams((p) => ({ ...p, color: e.target.value }));
+                    }}
+                  />
+                  배경
+                  <input
+                    type="color"
+                    value={params.bg}
+                    onChange={(e) => {
+                      setShowBgOverlay(false);
+                      setParams((p) => ({ ...p, bg: e.target.value }));
+                    }}
+                  />
+                </label>
 
                 {params.type === "tree" && (
                   <>
-                    <label className="controlSliderLabel">
-                      <span>가지 벌어짐: <b>{params.angle}°</b></span>
+                    <label className="control">
+                      가지 벌어짐: <b>{params.angle}°</b>
                       <input
                         type="range"
                         min="10"
@@ -668,8 +712,8 @@ export function MakeFractal({
                       />
                     </label>
 
-                    <label className="controlSliderLabel">
-                      <span>가지 길이 비율: <b>{params.ratio.toFixed(2)}</b></span>
+                    <label className="control">
+                      가지 길이 비율: <b>{params.ratio.toFixed(2)}</b>
                       <input
                         type="range"
                         min="0.55"
@@ -685,27 +729,19 @@ export function MakeFractal({
                   </>
                 )}
 
-                <button type="button" className="goDrawBtn" onClick={goDraw}>
+                <button type="button" className="primary" onClick={goDraw}>
                   다음: 그림 그리기 ▶
                 </button>
-              </div>
-
-              {/* ✅ 수정: 캔버스 박스 - 잘림 방지 */}
-              <div className="canvasBoxPreview">
-                <canvas ref={fractalCanvasRef} className="fractalCanvasPreview" />
-              </div>
-              
-              <div className="hintSmall">
-                위의 설정을 바꾸면 바탕이 바로 바뀌어요
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ② 그림 그리기 */}
+      {/* ③ 그림 그리기 */}
       {makeStage === "draw" && (
         <>
+          {/* ✅ 새로운 FractalDrawCanvas 컴포넌트 사용 */}
           <FractalDrawCanvas
             ref={fractalDrawCanvasRef}
             fractalImageUrl={bgSnapshot}
@@ -719,6 +755,7 @@ export function MakeFractal({
             showToolbar={false}
           />
 
+          {/* 도구 */}
           <div className="toolRow">
             <button type="button" className={`tool ${tool===TOOLS.PEN?"on":""}`} onClick={() => {
               setTool(TOOLS.PEN);
@@ -764,6 +801,7 @@ export function MakeFractal({
             </button>
           </div>
 
+          {/* 색상 및 굵기 조절 */}
           <div className="row">
             <label className="mini">
               색{" "}
@@ -783,6 +821,7 @@ export function MakeFractal({
               />
             </label>
 
+            {/* 굵기 버튼 (모든 도구 공통) */}
             <button
               type="button"
               className={thicknessMode === THICKNESS.THIN ? "tool chip on" : "tool chip"}
@@ -816,6 +855,7 @@ export function MakeFractal({
             </label>
           </div>
 
+          {/* 작품 이름 + 저장 */}
           <div className="nameRow">
             <input
               className="titleInput"
@@ -838,9 +878,10 @@ export function MakeFractal({
         </>
       )}
 
-      {/* ③ 제목/발표 카드 */}
+      {/* ④ 제목/발표 카드 */}
       {makeStage === "card" && (
         <div className="galleryTwoPane">
+          {/* LEFT */}
           <section className="pane left">
             <div className="paneHeader">
               <div>
@@ -878,6 +919,7 @@ export function MakeFractal({
             </div>
           </section>
 
+          {/* RIGHT */}
           <section className="pane right">
             <div className="paneHeader">
               <div>
@@ -917,7 +959,7 @@ export function MakeFractal({
                       className="presentationTextarea"
                       value={presentationDraft || ""}
                       onChange={(e) => setPresentationDraft(e.target.value)}
-                      placeholder="작품에 대한 발표 내용을 작성하세요."
+                      placeholder="작품에 대한 발표 내용을 작성하세요. 예: 내 작품은 프랙탈 나무를 바탕으로 그렸어요. 반복되는 가지 패턴이 특징이에요."
                       rows={6}
                     />
                   </label>
@@ -946,5 +988,4 @@ export function MakeFractal({
     </div>
   );
 }
-
 export default MakeFractal;
