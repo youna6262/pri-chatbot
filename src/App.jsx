@@ -2,7 +2,7 @@
 import PriHeader from "./components/PriHeader";
 import FractalIntro from "./components/FractalIntro";
 import NatureFractals from "./components/NatureFractals";
-import { MakeFractal } from "./components/MakeFractal";
+import MakeFractal from "./components/MakeFractal";
 import PriQuiz from "./components/PriQuiz";
 import PriChat from "./components/PriChat";
 import ClassAuthGate from "./components/ClassAuthGate";
