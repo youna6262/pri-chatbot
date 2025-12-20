@@ -670,7 +670,7 @@ export function MakeFractal({
                 <canvas ref={fractalCanvasRef} className="fractalCanvas" />
               </div>
               <div className="hintSmall">
-                위의 설정을 바꾸면 아래 바탕이 바로 바뀌어요
+                아래의 설정을 바꾸면 위의 바탕이 바로 바뀌어요
               </div>
               
               {/* 하단 컨트롤: 선색/배경/각도/비율/다음 버튼 */}

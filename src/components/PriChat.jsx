@@ -338,7 +338,7 @@ function PriChat({ workContext }) {
         <div className="pri-intro-message">
           <p className="intro-text">
             안녕! 나는 프랙탈 요정 프리야 ✨<br />
-            AI 윤리에 대해 물어보고 싶은 게 있으면 위 질문 버튼을 클릭해봐! 🧚
+            프랙탈 원리, 제목·  발표 · 공유, AI 윤리에 대해 물어보고 싶은 게 있으면 위 질문 버튼을 클릭해봐! 🧚
           </p>
         </div>
 

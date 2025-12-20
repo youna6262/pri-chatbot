@@ -5,7 +5,7 @@ import "./ChatPanel.css";
 
 export default function ChatPanel({ workContext, strokeSummary, onClose }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "안녕! 나는 프랙탈 요정 프리야 ✨\nAI 윤리에 대해 물어보고 싶은 게 있으면 위 질문 버튼을 클릭해봐! 🧚" },
+    { role: "assistant", content: "안녕! 나는 프랙탈 요정 프리야 ✨\n프랙탈 원리, 제목·  발표 · 공유, AI 윤리에 대해 물어보고 싶은 게 있으면 위 질문 버튼을 클릭해봐! 🧚" },
   ]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
