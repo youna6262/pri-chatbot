@@ -193,13 +193,18 @@ export function initFractalQAPrompts() {
       ["principle","share","ethics"].forEach(k=>{
         const label = k==="principle"?"🔎 원리":k==="share"?"🏷️ 발표":"🤖 윤리";
         const b = document.createElement("button");
-        b.className = "qaPromptsTab" + (activeTab===k?" active":"");
+        b.type = "button";
+        b.className = "qaPromptsTab" + (activeTab===k?" active":"") + (k==="principle"?" qaPromptsTab--principle":"");
+        b.dataset.tab = k;  // ✅ 구분 키
         b.textContent = label;
-        b.onclick = ()=> {
+        // ✅ addEventListener로 명확하게 연결
+        b.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           activeTab = k;
           renderTabs();
           renderChips();
-        };
+        });
         tabs.appendChild(b);
       });
     }
@@ -470,7 +475,7 @@ export function initFractalQAChat() {
       }
     };
 
-    add("bot", "안녕! 나는 프랙탈 요정 프리야 ✨\n오른쪽 질문 버튼을 눌러서 질문해보자!");
+    add("bot", "안녕! 나는 프랙탈 요정 프리야 ✨\n위의 질문 버튼을 눌러서 질문해보자!");
   })();
 }
 
@@ -921,7 +926,17 @@ export function initFractalQA() {
           React.createElement("div",{className:"tabs"},
             ["principle","share","ethics"].map(k=>{
               const label = k==="principle"?"🔎 프랙탈 원리":k==="share"?"🏷️ 제목·발표·공유":"🤖 AI 윤리 마무리";
-              return React.createElement("button",{key:k,className:"tab"+(tab===k?" active":""),onClick:()=>changeTab(k)},label);
+              return React.createElement("button",{
+                key:k,
+                type:"button",
+                "data-tab":k,
+                className:"tab"+(tab===k?" active":"")+(k==="principle"?" tab--principle":""),
+                onClick:(e)=>{
+                  e.preventDefault();
+                  e.stopPropagation();
+                  changeTab(k);
+                }
+              },label);
             })
           ),
           React.createElement("div",{className:"chips"},

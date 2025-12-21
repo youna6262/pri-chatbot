@@ -2551,3 +2551,72 @@
 #fractal-qa-chat-root{
   min-height: 0;
 }
+
+/* 원리 탭: 글씨가 안 보이는 문제 해결 */
+.qaPromptsTab--principle,
+.tab--principle {
+  color: #d81b60 !important;        /* 진한 핑크 */
+  font-weight: 800 !important;
+  background: #fff !important;
+  border: 2px solid #ffd1e3 !important;
+}
+
+.qaPromptsTab--principle:hover,
+.tab--principle:hover {
+  background: #fff0f6 !important;
+}
+
+.qaPromptsTab--principle.active,
+.tab--principle.active {
+  color: #d81b60 !important;
+  font-weight: 800 !important;
+  background: #fff0f6 !important;
+  border: 2px solid #d81b60 !important;
+}
+
+/* 프리 질문 탭 공통 active 스타일 수정 */
+.qaPromptsTab.active,
+.qaTab.active,
+.qaTab.is-active,
+.tab.active {
+  background: #fff !important;          /* 원리와 동일 */
+  border: 2px solid #ff6fa5 !important; /* 핑크 테두리 */
+  color: #ff2f7d !important;            /* 🔥 글씨를 진한 핑크로 */
+  font-weight: 800 !important;
+}
+
+/* active 상태의 아이콘/라벨도 색상 적용 */
+.qaPromptsTab.active span,
+.qaPromptsTab.active .qaLabel,
+.qaTab.active span,
+.qaTab.active .qaLabel,
+.tab.active span,
+.tab.active .qaLabel {
+  color: #ff2f7d !important;
+}
+
+/* 탭 영역은 항상 클릭 가능하게 */
+.qaPromptsTabs,
+.qaTabs,
+.qaTabRow,
+#fractal-qa-prompts-root {
+  position: relative;
+  z-index: 5;
+}
+
+/* 버튼 자체 클릭 보장 */
+.qaPromptsTab,
+.qaTab,
+.tab {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 6;
+}
+
+/* 만약 탭 위를 덮는 장식용 overlay가 있으면 클릭을 통과시킴 */
+.qaOverlay,
+.panelOverlay,
+.decorOverlay {
+  pointer-events: none;
+}

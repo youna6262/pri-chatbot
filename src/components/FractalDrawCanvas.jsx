@@ -62,6 +62,11 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     fractalImageUrl,
     drawFractal,
     initialTool = TOOLS.PEN,
+    penColor,
+    highlighterColor,
+    coloredPencilColor,
+    thicknessMode = THICKNESS.NORMAL,
+    detail = 50,
     onToolChange,
     showToolbar = true,
   },
@@ -75,6 +80,10 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
 
   const [tool, setTool] = useState(initialTool);
   const toolRef = useRef(tool);
+
+  const thicknessRef = useRef(thicknessMode);
+  const colorRef = useRef({ penColor, highlighterColor, coloredPencilColor });
+  const detailRef = useRef(detail);
 
   const [isDrawing, setIsDrawing] = useState(false);
   const last = useRef({ x: 0, y: 0 });
@@ -92,6 +101,12 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     toolRef.current = tool;
     onToolChange?.(tool);
   }, [tool, onToolChange]);
+
+  useEffect(() => { thicknessRef.current = thicknessMode; }, [thicknessMode]);
+  useEffect(() => { detailRef.current = detail; }, [detail]);
+  useEffect(() => {
+    colorRef.current = { penColor, highlighterColor, coloredPencilColor };
+  }, [penColor, highlighterColor, coloredPencilColor]);
 
   // ResizeObserver로 캔버스 크기 맞춤
   useEffect(() => {
@@ -181,6 +196,18 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     },
   };
 
+  const THICKNESS_SCALE = {
+    [THICKNESS.THIN]: 0.65,
+    [THICKNESS.NORMAL]: 1.0,
+    [THICKNESS.THICK]: 1.8,
+  };
+
+  const getScaledWidth = (toolKey) => {
+    const base = (BRUSH_PRESETS[toolKey] || BRUSH_PRESETS[TOOLS.PEN]).width;
+    const scale = THICKNESS_SCALE[thicknessRef.current] ?? 1.0;
+    return base * scale;
+  };
+
   const getDrawCtx = () => {
     const c = drawRef.current;
     if (!c) return null;
@@ -191,8 +218,16 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
     if (!ctx) return;
     const p = BRUSH_PRESETS[t] || BRUSH_PRESETS[TOOLS.PEN];
 
-    ctx.strokeStyle = p.color;
-    ctx.lineWidth = p.width;
+    const colors = colorRef.current;
+    const strokeColor =
+      t === TOOLS.PEN ? (colors.penColor || p.color) :
+      t === TOOLS.HIGHLIGHTER ? (colors.highlighterColor || p.color) :
+      t === TOOLS.COLORED_PENCIL ? (colors.coloredPencilColor || p.color) :
+      p.color;
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = getScaledWidth(t);
+
     ctx.globalAlpha = p.alpha;
     ctx.globalCompositeOperation = p.op;
     ctx.lineCap = "round";
@@ -266,22 +301,23 @@ const FractalDrawCanvas = React.forwardRef(function FractalDrawCanvas(
 
     // ✅ 색연필 질감(다중패스 + 흔들림 + 알파/굵기 변주 + 약간 곡선)
     const preset = BRUSH_PRESETS[TOOLS.COLORED_PENCIL];
+    const scaledBase = getScaledWidth(TOOLS.COLORED_PENCIL);
     const passes = 4;
-    const amt = clamp(preset.width * 0.18, 0.8, 3.0);
+    const amt = clamp(scaledBase * 0.18, 0.8, 3.0);
 
     for (let i = 0; i < passes; i++) {
       const f = jitter(from, amt);
       const tt = jitter(to, amt);
 
       const alpha = clamp(0.35 + Math.random() * 0.35, 0.25, 0.75);
-      const width = clamp(preset.width * (0.6 + Math.random() * 0.35), 2, preset.width);
+      const width = clamp(scaledBase * (0.6 + Math.random() * 0.35), 2, scaledBase);
 
       const mx = (f.x + tt.x) / 2 + (Math.random() - 0.5) * amt * 1.4;
       const my = (f.y + tt.y) / 2 + (Math.random() - 0.5) * amt * 1.4;
 
       ctx.save();
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = preset.color;
+      ctx.strokeStyle = (colorRef.current.coloredPencilColor || preset.color);
       ctx.globalAlpha = alpha;
       ctx.lineWidth = width;
       ctx.lineCap = "round";

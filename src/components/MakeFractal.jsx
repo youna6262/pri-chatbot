@@ -802,19 +802,16 @@ export function MakeFractal({
               <div className="toolRow">
                 <button type="button" className={`tool ${tool===TOOLS.PEN?"on":""}`} onClick={() => {
                   setTool(TOOLS.PEN);
-                  setPenColor(DEFAULT_COLOR_BY_TOOL[TOOLS.PEN]);
                 }}>
                   ✏️ 펜
                 </button>
                 <button type="button" className={`tool ${tool===TOOLS.HIGHLIGHTER?"on":""}`} onClick={() => {
                   setTool(TOOLS.HIGHLIGHTER);
-                  setHighlighterColor(DEFAULT_COLOR_BY_TOOL[TOOLS.HIGHLIGHTER]);
                 }}>
                   🖍️ 형광펜
                 </button>
                 <button type="button" className={`tool ${tool===TOOLS.COLORED_PENCIL?"on":""}`} onClick={() => {
                   setTool(TOOLS.COLORED_PENCIL);
-                  setColoredPencilColor(DEFAULT_COLOR_BY_TOOL[TOOLS.COLORED_PENCIL]);
                 }}>
                   ✏️ 색연필
                 </button>
