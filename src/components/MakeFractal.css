@@ -2483,3 +2483,71 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===========================
+   ✅ 질문 버튼(프롬프트) 영역을 채팅 위로 예쁘게
+   =========================== */
+
+/* chat을 세로 스택으로 */
+.step2Grid .chat{
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 질문 버튼 박스 */
+.step2Grid .chatQuick{
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 154, 158, 0.25);
+  background: linear-gradient(135deg, rgba(255,154,158,0.10) 0%, rgba(186,230,253,0.10) 100%);
+  box-shadow: 0 4px 12px rgba(255, 154, 158, 0.12);
+  margin-bottom: 10px;
+}
+
+/* 프롬프트 루트: 가운데 + 줄바꿈 */
+#fractal-qa-prompts-root{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  align-items: center;
+  justify-content: center; /* ✅ 스샷처럼 가운데 정렬 */
+}
+
+/* (중요) 프롬프트 안의 버튼/칩을 강제 스타일링
+   - 실제 DOM이 button일 수도 있고 a/div일 수도 있어서 범용 선택자 사용 */
+#fractal-qa-prompts-root button,
+#fractal-qa-prompts-root .chip,
+#fractal-qa-prompts-root [role="button"]{
+  min-height: 44px;               /* ✅ 터치 영역 */
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,154,158,0.35);
+  background: white;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(255,154,158,0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+#fractal-qa-prompts-root button:hover,
+#fractal-qa-prompts-root .chip:hover,
+#fractal-qa-prompts-root [role="button"]:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255,154,158,0.18);
+}
+
+/* 채팅 본문은 남은 공간 채우기 */
+.step2Grid .chatMain{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 혹시 채팅 루트가 absolute를 쓰면 대비 */
+#fractal-qa-chat-root{
+  min-height: 0;
+}
